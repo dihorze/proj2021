@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import Landing from "./routes/Landing/Landing";
-import Main from "./routes/Main/Canvas"
+import Main from "./routes/Main/Battle/Battlefield"
 
 function App() {
   return (
