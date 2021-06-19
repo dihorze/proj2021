@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { Point } from "../../model/positioning";
@@ -10,7 +10,7 @@ const useStyles = makeStyles({
     left: ({ loc }: any) => loc.x,
     height: ({ height }: any) => height,
     width: ({ width }: any) => width,
-    backgroundColor: "pink",
+    backgroundColor: "tomato",
     border: "2px black solid",
     borderRadius: 2,
     padding: 10,
@@ -38,6 +38,7 @@ interface CardProps {
   loc: Point;
   src: string;
   alt?: string;
+  duration?: number;
   width?: number;
   height?: number;
   deg?: number;
@@ -57,6 +58,7 @@ export const Card: React.FC<CardProps> = ({
   loc,
   src,
   alt,
+  duration,
   width,
   height,
   deg,
@@ -79,7 +81,12 @@ export const Card: React.FC<CardProps> = ({
     isHovered,
   });
 
-  return (
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setTimeout(() => setIsMounted(true), duration ? duration : 300);
+  }, [duration]);
+
+  return isMounted && (
     <div
       className={classes.card}
       onClick={onClick}

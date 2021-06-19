@@ -5,21 +5,22 @@ import { Point } from "../../model/positioning";
 
 const useStyles = makeStyles({
   card: {
-    opacity: ({ isMounted }: any) => isMounted ? "1" : "0",
+    opacity: ({ isMounted }: any) => (isMounted ? "1" : "0"),
     position: "fixed",
     top: ({ loc }: any) => loc.y,
     left: ({ loc }: any) => loc.x,
     height: ({ height }: any) => height,
     width: ({ width }: any) => width,
-    backgroundColor: "pink",
+    backgroundColor: "tomato",
     border: "2px black solid",
     borderRadius: 2,
     padding: 10,
     fontSize: 24,
     fontWeight: "bold",
-    transition: "opacity 500ms ease-in",
+    transition: ({ duration }: any) =>
+      `opacity ${duration ? duration : 300}ms ease-in`,
     transform: "translateY(-30px) scale(1.3)",
-    zIndex: -1
+    zIndex: -1,
   },
   text: {},
 } as StyleRules);
@@ -30,6 +31,7 @@ interface ExitingCardProps {
   alt?: string;
   width?: number;
   height?: number;
+  duration?: number;
   children?: any;
 }
 
@@ -39,20 +41,22 @@ const Card: React.FC<ExitingCardProps> = ({
   alt,
   width,
   height,
+  duration,
   children,
 }) => {
   const [isMounted, setIsMounted] = useState(true);
 
   useEffect(() => {
     setIsMounted(false);
-  }, [])
+  }, []);
 
   const classes = useStyles({
     loc,
     origin,
     width,
     height,
-    isMounted
+    duration,
+    isMounted,
   });
 
   return <div className={classes.card}>{children}</div>;
