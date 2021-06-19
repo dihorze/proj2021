@@ -5,24 +5,18 @@
   min-height: 32px;
   max-width: 200px;
   background-color: rgba(255, 128, 0, 0.5);
-  cursor: default;
-  
 }
 
 .text {
   font-size: 16px;
   color: azure;
   text-shadow: 2px 2px 3px dimgray;
-  transition: all 0.1s ease-in-out;
-  -webkit-user-select: none;  /* Chrome all / Safari all */
-  -moz-user-select: none;     /* Firefox all */
-  -ms-user-select: none;      /* IE 10+ */
-  user-select: none;          /* Likely future */ 
+  transition: all 0.2s ease-in-out;
 }
 
 .btn:hover .text {
   font-size: 20px;
-  animation: resize 1s ease-in-out 0.1s infinite alternate forwards;
+  animation: resize 1s ease-in-out 0.2s infinite alternate;
 }
 
 @keyframes resize {

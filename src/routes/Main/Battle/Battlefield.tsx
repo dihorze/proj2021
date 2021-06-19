@@ -1,23 +1,43 @@
 import React from "react";
 
-import styles from "../styles";
 import { withStyles } from "@material-ui/styles";
 import Ground from "../Background/Background";
 import TopBar from "../TopBar/TopBar";
+import CardTable from "./CardTable";
+import { MouseContextProvider } from "../../../components/context/withMouseContext";
+import MultiProvider from "../../../components/context/MultiProvide";
+import { StyleRules } from "@material-ui/core";
 
 interface BattlefieldProps {
   classes: Record<string, string>;
 }
+
+const contextProviders = [MouseContextProvider];
+
+const styles: StyleRules = {
+  canvasContainer: {
+    width: "100vw",
+    height: "100vh",
+    overflow: "hidden",
+  },
+};
 
 class Battlefield extends React.Component<BattlefieldProps> {
   render() {
     const { classes } = this.props;
 
     return (
-      <React.Fragment>
-        <Ground />
-        <TopBar />
-      </React.Fragment>
+      <MultiProvider providers={contextProviders}>
+        <div
+          id="map-area"
+          className={classes.canvasContainer}
+          onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
+        >
+          <Ground />
+          <TopBar />
+          <CardTable />
+        </div>
+      </MultiProvider>
     );
   }
 }

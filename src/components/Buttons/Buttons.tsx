@@ -36,8 +36,8 @@ const useStyles = makeStyles({
 
 interface ButtonProps {
   onClick?: (e: React.MouseEvent) => void;
-  textStyle?: StyleRules;
-  btnStyle?: StyleRules;
+  textStyle?: any;
+  btnStyle?: any;
 }
 
 export const Button1: React.FC<ButtonProps> = ({

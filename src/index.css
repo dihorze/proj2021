@@ -13,5 +13,17 @@
 }
 
 * {
-  font-family: 'HelvetiHand'
+  font-family: 'HelvetiHand';
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
+  user-select: none;          /* Likely future */ 
+}
+
+#map-area {
+  cursor: url('./assets/cursor.png'), auto;
+}
+
+#map-area:active {
+  cursor: url('./assets/cursor_active.png'), pointer;
 }
