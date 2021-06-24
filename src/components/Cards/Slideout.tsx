@@ -28,9 +28,9 @@ const useStyles = makeStyles({
       isMounted
         ? isHand
           ? `rotate(${deg}deg) translateX(${offsetX}px)`
-          : "translateY(-30px) scale(1.3)"
-        : "rotate(179deg) scale(1.3)",
-    zIndex: -1,
+          : "scale(1.3)"
+        : "rotate(0.5turn) scale(1.3)",
+    zIndex: 0,
   },
   text: {},
 } as StyleRules);

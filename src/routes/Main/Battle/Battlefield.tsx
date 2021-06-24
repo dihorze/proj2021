@@ -7,6 +7,8 @@ import CardTable from "./CardTable";
 import { MouseContextProvider } from "../../../components/context/withMouseContext";
 import MultiProvider from "../../../components/context/MultiProvide";
 import { StyleRules } from "@material-ui/core";
+import { Trashbin } from "./Trashbin";
+import { Scene } from "./Scene";
 
 interface BattlefieldProps {
   classes: Record<string, string>;
@@ -36,6 +38,8 @@ class Battlefield extends React.Component<BattlefieldProps> {
           <Ground />
           <TopBar />
           <CardTable />
+          <Trashbin />
+          <Scene />
         </div>
       </MultiProvider>
     );

@@ -19,8 +19,8 @@ const useStyles = makeStyles({
     fontWeight: "bold",
     transition: ({ duration }: any) =>
       `opacity ${duration ? duration : 300}ms ease-in`,
-    transform: "translateY(-30px) scale(1.3)",
-    zIndex: -1,
+    transform: "scale(1.3)",
+    zIndex: 0,
   },
   text: {},
 } as StyleRules);
@@ -45,21 +45,22 @@ const Card: React.FC<ExitingCardProps> = ({
   children,
 }) => {
   const [isMounted, setIsMounted] = useState(true);
+  const [isDismounted, setIsDismounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(false);
-  }, []);
+    setTimeout(() => setIsDismounted(true), duration ? duration : 300);
+  }, [duration]);
 
   const classes = useStyles({
     loc,
-    origin,
     width,
     height,
     duration,
     isMounted,
   });
 
-  return <div className={classes.card}>{children}</div>;
+  return !isDismounted && <div className={classes.card}>{children}</div>;
 };
 
 export default React.memo(Card, () => true);

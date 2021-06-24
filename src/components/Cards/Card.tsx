@@ -11,17 +11,26 @@ const useStyles = makeStyles({
     height: ({ height }: any) => height,
     width: ({ width }: any) => width,
     backgroundColor: "tomato",
-    border: "2px black solid",
+    border: "1px black solid",
     borderRadius: 2,
     padding: 10,
     fontSize: 24,
     fontWeight: "bold",
-    transition: ({ isSelected }: any) => (isSelected ? "all 0s" : "all 0.2s"),
+    transition: ({ isSelected, isMoving, isHovered }: any) =>
+      isMoving
+        ? "all 0ms"
+        : isHovered
+        ? "all 30ms"
+        : isSelected
+        ? "all 50ms"
+        : "all 200ms",
     transformOrigin: ({ origin }: any) =>
       `${origin ? origin.x : 0}px ${origin ? origin.y : 0}px`,
     transform: ({ deg, offsetX, offsetY, isHovered, isSelected }: any) =>
-      isHovered || isSelected
-        ? `translateY(-${30 + offsetY}px) scale(1.3)`
+      isSelected
+        ? `translateY(-${offsetY}px) scale(1.3)`
+        : isHovered
+        ? `translateY(-${offsetY + 30}px) scale(1.3)`
         : `rotate(${deg}deg) translateX(${offsetX}px)`,
     zIndex: ({ isHovered, isSelected }: any) =>
       isHovered || isSelected ? "100" : "auto",
@@ -49,7 +58,7 @@ interface CardProps {
   isHovered: boolean;
 }
 
-export const Card: React.FC<CardProps> = ({
+export const CardComponent: React.FC<CardProps> = ({
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -69,6 +78,15 @@ export const Card: React.FC<CardProps> = ({
   isHovered,
   children,
 }) => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setIsMounted(true), duration ? duration : 300);
+    if (isSelected) setTimeout(() => setIsMoving(true), 100);
+    else setIsMoving(false);
+  }, [duration, isSelected]);
+
   const classes = useStyles({
     loc,
     origin,
@@ -79,23 +97,21 @@ export const Card: React.FC<CardProps> = ({
     offsetX: offsets ? offsets.x : 0,
     isSelected,
     isHovered,
+    isMoving,
   });
 
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setTimeout(() => setIsMounted(true), duration ? duration : 300);
-  }, [duration]);
-
-  return isMounted && (
-    <div
-      className={classes.card}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-    >
-      {children}
-    </div>
+  return (
+    isMounted && (
+      <div
+        className={classes.card}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+      >
+        {children}
+      </div>
+    )
   );
 };

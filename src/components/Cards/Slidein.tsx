@@ -26,7 +26,7 @@ const useStyles = makeStyles({
     transform: ({ isMounted, deg, offsetX }: any) =>
       isMounted
         ? `rotate(${deg}deg) translateX(${offsetX}px)`
-        : `rotate(${-deg}deg)`,
+        : `rotate(${Math.min(deg, -deg)}deg)`,
     zIndex: 99,
   },
   text: {},

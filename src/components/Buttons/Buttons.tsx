@@ -11,7 +11,6 @@ const useStyles = makeStyles({
     minHeight: 32,
     maxWidth: 200,
     backgroundColor: "rgba(255, 128, 0, 0.5)",
-    cursor: "default",
     "-webkit-user-select": "none",  
     "-moz-user-select": "none",
     "-ms-user-select": "none",
