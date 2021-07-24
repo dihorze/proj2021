@@ -1,6 +1,30 @@
-import { combineReducers } from 'redux';
-import { ACTIVATE_AIMING_CARD, ADD_MANY_CARDS, ADD_ONE_CARD, DELETE_ALL_CARDS, DELETE_ONE_CARDS, SELECT_CARD, UNSELECT_CARD } from '../actions/types';
-import { CardTableStateBuilder } from '../stateModels/battleModels';
+import { combineReducers } from "redux";
+import {
+  ACTIVATE_AIMING_CARD,
+  ADD_CARDS_TO_DISCARD_PILE,
+  ADD_CARDS_TO_DRAW_PILE,
+  ADD_CARDS_TO_HAND,
+  ADD_MANY_CARDS,
+  ADD_ONE_CARD,
+  CLEAR_HOVERED_CARD,
+  DELETE_ALL_CARDS,
+  DELETE_CARDS_FROM_DISCARD_PILE,
+  DELETE_CARDS_FROM_DRAW_PILE,
+  DELETE_CARDS_FROM_HAND,
+  DELETE_ONE_CARDS,
+  QUEUE_ANIMATION,
+  SELECT_CARD,
+  SET_AIMING_CARD,
+  SET_HOVERED_CARD,
+  TOGGLE_DISCARD_PILE,
+  TOGGLE_DRAW_PILE,
+  UNSELECT_CARD,
+} from "../actions/types";
+import {
+  BattleAnimationStateBuilder,
+  BattleStateBuilder,
+  CardTableStateBuilder,
+} from "../stateModels/battleModels";
 
 const cardReducer = (state = CardTableStateBuilder.init(), action: any) => {
   switch (action.type) {
@@ -18,11 +42,57 @@ const cardReducer = (state = CardTableStateBuilder.init(), action: any) => {
       return CardTableStateBuilder.selectCard(state, action.key);
     case UNSELECT_CARD:
       return CardTableStateBuilder.unselectCard(state);
+    case SET_AIMING_CARD:
+      return CardTableStateBuilder.setAimingCard(state, action.key);
+    case SET_HOVERED_CARD:
+      return CardTableStateBuilder.setHoveredCard(state, action.index);
+    case CLEAR_HOVERED_CARD:
+      return CardTableStateBuilder.clearHoveredCard(state);
+
+    // battle related card actions
+    case ADD_CARDS_TO_HAND:
+      return CardTableStateBuilder.addCardsToHand(state, action.cards);
+    case DELETE_CARDS_FROM_HAND:
+      return CardTableStateBuilder.deleteCardsFromHand(state, action?.keys);
+    case ADD_CARDS_TO_DRAW_PILE:
+      return CardTableStateBuilder.addCardsToDrawPile(state, action.cards);
+    case DELETE_CARDS_FROM_DRAW_PILE:
+      return CardTableStateBuilder.deleteCardsFromDrawPile(state, action?.keys);
+    case ADD_CARDS_TO_DISCARD_PILE:
+      return CardTableStateBuilder.addCardsToDiscardPile(state, action.cards);
+    case DELETE_CARDS_FROM_DISCARD_PILE:
+      return CardTableStateBuilder.deleteCardsFromDiscardPile(
+        state,
+        action?.keys
+      );
+
     default:
-      return state
+      return state;
+  }
+};
+
+const battleReducer = (state = BattleStateBuilder.init(), action: any) => {
+  switch (action.type) {
+    case TOGGLE_DRAW_PILE:
+      return BattleStateBuilder.toggleDrawPile(state);
+    case TOGGLE_DISCARD_PILE:
+      return BattleStateBuilder.toggleDiscardPile(state);
+    default:
+      return state;
+  }
+};
+
+const animationReducer = (state = BattleAnimationStateBuilder.init(), action: any) => {
+  switch(action.type) {
+    case QUEUE_ANIMATION:
+      return BattleAnimationStateBuilder.queueAnimation(state, action?.animation);
+    default:
+      return state;
   }
 }
 
 export default combineReducers({
-  card: cardReducer
-})
+  card: cardReducer,
+  battle: battleReducer,
+  animation: animationReducer
+});

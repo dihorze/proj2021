@@ -11,8 +11,6 @@ const useStyles = makeStyles({
     left: ({ loc }: any) => loc.x,
     height: ({ height }: any) => height,
     width: ({ width }: any) => width,
-    backgroundColor: "tomato",
-    border: "2px black solid",
     borderRadius: 2,
     padding: 10,
     fontSize: 24,
@@ -21,6 +19,8 @@ const useStyles = makeStyles({
       `opacity ${duration ? duration : 300}ms ease-in`,
     transform: "scale(1.3)",
     zIndex: 0,
+    backgroundImage: "url('./assets/papercard.png')",
+    backgroundSize: "cover"
   },
   text: {},
 } as StyleRules);
@@ -49,7 +49,10 @@ const Card: React.FC<ExitingCardProps> = ({
 
   useEffect(() => {
     setIsMounted(false);
-    setTimeout(() => setIsDismounted(true), duration ? duration : 300);
+    const tid = setTimeout(() => setIsDismounted(true), duration ? duration : 300);
+    return () => {
+      clearTimeout(tid);
+    }
   }, [duration]);
 
   const classes = useStyles({

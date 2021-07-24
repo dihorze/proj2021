@@ -1,14 +1,14 @@
 import React from "react";
 
 import { withStyles } from "@material-ui/styles";
-import Ground from "../Background/Background";
-import TopBar from "../TopBar/TopBar";
 import CardTable from "./CardTable";
 import { MouseContextProvider } from "../../../components/context/withMouseContext";
 import MultiProvider from "../../../components/context/MultiProvide";
 import { StyleRules } from "@material-ui/core";
-import { Trashbin } from "./Trashbin";
-import { Scene } from "./Scene";
+import Interaction from "./Interaction";
+import AimingArrow from "./AimingArrow";
+import BattleUI from "./BattleUI/BattleUI";
+
 
 interface BattlefieldProps {
   classes: Record<string, string>;
@@ -35,12 +35,11 @@ class Battlefield extends React.Component<BattlefieldProps> {
           className={classes.canvasContainer}
           onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
         >
-          <Ground />
-          <TopBar />
           <CardTable />
-          <Trashbin />
-          <Scene />
+          <AimingArrow />
+          <BattleUI />
         </div>
+        <Interaction />
       </MultiProvider>
     );
   }

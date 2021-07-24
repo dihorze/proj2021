@@ -13,15 +13,16 @@ import {
   cHeight,
   cTop,
   cWidth,
+  degInterval,
   getCardPos,
   origin,
+  innerWidth,
 } from "../../../data/Battlefield";
 import { inverse, norm } from "../../../model/fomula";
 import { Point } from "../../../model/positioning";
 import { withStyles } from "@material-ui/core";
-import { styles } from "./cardTableStyles";
-import { getCardType } from "../../../data/deck";
-import { CardTypes } from "../../../model/classes";
+import { styles } from "./styles";
+import { CardTypes, getCardType, getRandomCard } from "../../../data/deck";
 import { connect } from "react-redux";
 import {
   CardTableProps,
@@ -29,119 +30,107 @@ import {
   cardTableActions,
   CardTableMapStateToProps,
 } from "./CardTableProps";
-
-const innerWidth = window.innerWidth;
+import { Card } from "../../../model/classes";
 
 export class CardTable extends Component<CardTableProps, CardTableStates> {
   state = {
     exitingCards: [],
     discardingCards: {}, // from hand
-    enteringCards: [],
-    hoveredCard: -1,
+    // enteringCards: [],
   };
 
   shouldComponentUpdate(nextProps: CardTableProps, nextState: CardTableStates) {
     if (
       this.state === nextState &&
       this.props.selectedCard === CardTypes.NONE &&
-      nextProps.selectedCard === CardTypes.NONE
+      nextProps.selectedCard === CardTypes.NONE &&
+      this.props.hoveredCard === nextProps.hoveredCard &&
+      this.props.aimingCard === nextProps.aimingCard &&
+      this.props.cards === nextProps.cards
     )
       return false;
     return true;
   }
 
   addOne = () => {
-    const key = Math.floor(Math.random() * 10000) + "";
-    this.props.addOneCard(key);
-    this.setState((state: CardTableStates) => {
-      return {
-        enteringCards: [...state.enteringCards, key],
-      };
-    });
+    const id = getRandomCard();
+    this.props.addOneCard(id);
   };
 
   addMany = () => {
     const noToAdd = 5;
     const cards = new Array(noToAdd)
       .fill(0)
-      .map(() => Math.floor(Math.random() * 10000) + "");
+      .map(() => getRandomCard());
     this.props.addManyCards(cards);
-    this.setState((state: CardTableStates) => {
-      const newEnteringCards = state.enteringCards.concat(...cards);
-      return {
-        enteringCards: newEnteringCards,
-      };
-    });
   };
 
   deleteAll = () => {
     const oldCards = [...this.props.cards];
     this.props.deleteAllCards();
     const discardingCards = {};
-    oldCards.forEach((key, idx) => {
-      discardingCards[key] = idx;
+    oldCards.forEach((card, idx) => {
+      discardingCards[card.key] = idx;
     });
     this.setState({
-      enteringCards: [],
+      // enteringCards: [],
       exitingCards: [],
       discardingCards,
-      hoveredCard: -1,
     });
-  };
-
-  cardClick = (idx: number) => () => {
-    console.log("card click");
-    // this.cardLeave();
-    // this.setState((state: any) => {
-    //   console.log(state);
-    //   const newCards = [...state.cards];
-    //   newCards.splice(idx, 1);
-    //   return { cards: newCards };
-    // });
   };
 
   cardEnter = (idx: number) => () => {
-    this.setState({ hoveredCard: idx }); // index
+    if (
+      idx !== this.props.hoveredCard &&
+      this.props.aimingCard === CardTypes.NONE
+    )
+      this.props.setHoveredCard(idx); // index
+  };
+
+  cardMove = (idx: number) => () => {
+    if (
+      idx !== this.props.hoveredCard &&
+      this.props.aimingCard === CardTypes.NONE
+    )
+      this.props.setHoveredCard(idx);
   };
 
   cardLeave = () => {
-    this.setState({ hoveredCard: -1 });
+    if (this.props.aimingCard === CardTypes.NONE) this.props.clearHoveredCard();
   };
 
   leaveTable = () => {};
 
   cardMouseUp = (event: React.MouseEvent) => {
     if (event.button === 0 && this.props.mousePos.y < activeZoneBottomLineY) {
+      this.props.playACard(Card.getCardFromKey(this.props.selectedCard));
       this.setState((state: CardTableStates) => {
         // console.log(state);
         const key = this.props.selectedCard;
         const n = state.exitingCards.length;
         const newExitingCards =
           n > 0 ? [state.exitingCards[n - 1], key] : [key];
-        const newEnteringCards = state.enteringCards.filter((c) => c !== key);
+        // const newEnteringCards = state.enteringCards.filter((c) => c !== key);
         this.props.deleteOneCard(key);
         return {
-          hoveredCard: -1,
           exitingCards: newExitingCards,
-          enteringCards: newEnteringCards,
+          // enteringCards: newEnteringCards,
         };
       });
     }
   };
 
   cardMouseDown = (key: string) => (event: React.MouseEvent) => {
-    if (event.button === 0) {
-      this.props.selectCard(key);
-    } else {
-      event.preventDefault();
-      this.props.unselectCard();
-    }
+    if (this.props.aimingCard === CardTypes.NONE)
+      if (event.button === 0) {
+        this.props.selectCard(key);
+      } else {
+        event.preventDefault();
+        this.props.unselectCard();
+      }
   };
 
   render() {
-    // console.log(this.state.hoveredCard);
-    // console.log(this.state.selectedCard);
-
     const cards = getCardLocs(this.state, this.props);
     const dCards = getDiscardedCardLocs(this.state, this.props);
 
@@ -167,25 +156,36 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
         >
           Delete All
         </Button1>
-        {cards.map(({ loc, o, deg, key, hoverOffsets, offsets }, idx) => (
+        <Button1
+          btnStyle={{ position: "fixed", top: 300, left: 900, width: 150 }}
+          onClick={this.props.startBattle}
+        >
+          Discussion Start
+        </Button1>
+        <Button1
+          btnStyle={{ position: "fixed", top: 350, left: 900, width: 150 }}
+          onClick={() => this.props.drawCards()}
+        >
+          Start Turn
+        </Button1>
+        {cards.map(({ loc, o, deg, key, card, hoverOffsets, offsets }, idx) => (
           <CardComponent
-            src="test"
-            alt="test"
             loc={loc}
             origin={o}
             deg={deg}
             key={key}
+            card={card}
             isSelected={this.props.selectedCard === key}
             isHovered={
-              this.state.hoveredCard === idx &&
+              this.props.hoveredCard === idx &&
               this.props.selectedCard === CardTypes.NONE
             }
             hoverOffsets={hoverOffsets}
             offsets={offsets}
             width={cWidth}
             height={cHeight}
-            onClick={this.cardClick(idx)}
             onMouseEnter={this.cardEnter(idx)}
+            onMouseMove={this.cardMove(idx)}
             onMouseLeave={this.cardLeave}
             onMouseDown={this.cardMouseDown(key)}
             onMouseUp={this.cardMouseUp}
@@ -193,7 +193,7 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
             {key}
           </CardComponent>
         ))}
-        {this.state.enteringCards.map((key) => {
+        {/* {this.state.enteringCards.map((key) => {
           const c = cards.find((card) => card.key === key);
           if (!c) return null; // in case of key duplication
           return (
@@ -211,7 +211,7 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
               {key}
             </SlideinCard>
           );
-        })}
+        })} */}
         {this.state.exitingCards.map((key) => (
           <FadeoutCard
             key={key + "-out"}
@@ -254,9 +254,21 @@ export default connect(
 )(mouseContextCardTable);
 
 const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
-  props.cards.map((key, idx) => {
+  props.cards.map((card, idx) => {
+    const key = card.key;
+    if (props.selectedCard === key) {
+      return {
+        loc: getCardPos(props.mousePos),
+        o: Point.at(cWidth / 2, cHeight / 2),
+        deg: 0,
+        key,
+        hoverOffsets: Point.at(0, 0),
+        offsets: Point.at(0, 0),
+        card,
+      };
+    }
+
     const offset = idx - (props.cards.length - 1) / 2;
-    const degInterval = 2;
     const alpha = offset * degInterval;
     const rad_alpha = (alpha / 180) * Math.PI;
 
@@ -267,10 +279,10 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
 
     const targetCardIndex =
       props.selectedCard === CardTypes.NONE
-        ? state.hoveredCard < 0
+        ? props.hoveredCard < 0
           ? -1
-          : state.hoveredCard
-        : props.cards.findIndex((c) => c === props.selectedCard);
+          : props.hoveredCard
+        : props.cards.findIndex((c) => c.key === props.selectedCard);
 
     const sign =
       idx === targetCardIndex || targetCardIndex < 0
@@ -279,14 +291,15 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
         ? -1
         : 1;
 
-    if (props.selectedCard === key) {
+    if (props.aimingCard === key) {
       return {
-        loc: getCardPos(props.mousePos),
+        loc: Point.at(p.x, activeZoneBottomLineY),
         o: Point.at(cWidth / 2, cHeight / 2),
         deg: 0,
         key,
         hoverOffsets: Point.at(0, 0),
         offsets: Point.at(0, 0),
+        card,
       };
     }
 
@@ -295,11 +308,12 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
       o: Point.at(cWidth / 2, cHeight / 2),
       deg: offset * degInterval,
       key,
-      hoverOffsets: Point.at(0, origin.y * (1 - Math.cos(rad_alpha))),
+      hoverOffsets: Point.at(0, origin.y * (1 - Math.cos(rad_alpha))), // card being hoverd => offset Y
       offsets: Point.at(
         sign * norm(idx, targetCardIndex, cardShiftSigma, cardShiftMagnitude),
         0
-      ),
+      ), // card give way to selected card => offset X
+      card,
     };
   });
 
@@ -314,7 +328,6 @@ const getDiscardedCardLocs = (
   return Object.keys(state.discardingCards).map((key: string) => {
     const idx = state.discardingCards[key];
     const offset = idx - (n - 1) / 2;
-    const degInterval = 2;
     const alpha = offset * degInterval;
     const rad_alpha = (alpha / 180) * Math.PI;
 
@@ -325,10 +338,10 @@ const getDiscardedCardLocs = (
 
     const targetCardIndex =
       props.selectedCard === CardTypes.NONE
-        ? state.hoveredCard < 0
+        ? props.hoveredCard < 0
           ? -1
-          : state.hoveredCard
-        : props.cards.findIndex((c) => c === props.selectedCard);
+          : props.hoveredCard
+        : props.cards.findIndex((c) => c.key === props.selectedCard);
 
     const sign =
       idx === targetCardIndex || targetCardIndex < 0

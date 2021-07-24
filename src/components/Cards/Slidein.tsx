@@ -2,81 +2,145 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { Point } from "../../model/positioning";
+import { CardStaticComponent } from "./Card";
+import { cTop, degInterval, origin } from "../../data/Battlefield";
 
 const innerHeight = window.innerHeight;
+const innerWidth = window.innerWidth;
+
+const getCardTopLoc = (props: useStyleProps) => {
+  const { isMounted, startLoc, endLoc, isToHand, handIdx, noCardsInHand } =
+    props;
+  if (!isMounted) return startLoc?.y || innerHeight - 150;
+  if (isToHand) {
+    const offset = handIdx - (noCardsInHand - 1) / 2;
+    const alpha = offset * degInterval;
+    const rad_alpha = (alpha / 180) * Math.PI;
+    return cTop + origin.y * (1 - Math.cos(rad_alpha));
+  }
+  return endLoc?.y || innerHeight - 150;
+};
+
+const getCardLeftLoc = (props: useStyleProps) => {
+  const {
+    isMounted,
+    startLoc,
+    endLoc,
+    isToHand,
+    handIdx,
+    noCardsInHand,
+    width,
+  } = props;
+  if (!isMounted) return startLoc?.x || 50;
+  if (isToHand) {
+    const offset = handIdx - (noCardsInHand - 1) / 2;
+    const alpha = offset * degInterval;
+    const rad_alpha = (alpha / 180) * Math.PI;
+    return (innerWidth - width) / 2 + origin.y * Math.sin(rad_alpha);
+  }
+  return endLoc?.x || 50;
+};
+
+const getCardTransform = (props: useStyleProps) => {
+  const { isMounted, isToHand, isExpand, handIdx, noCardsInHand } = props;
+  if (!isMounted) {
+    if (isExpand) return `scale(0.1)`;
+    else return "";
+  }
+  if (isToHand) {
+    const offset = handIdx - (noCardsInHand - 1) / 2;
+    const deg = offset * degInterval;
+    return `rotate(${deg}deg)`;
+  }
+  return "";
+};
 
 const useStyles = makeStyles({
-  card: {
-    opacity: ({ isMounted }: any) => (isMounted ? "1" : "0"),
+  animation: {
+    opacity: ({ isMounted }: useStyleProps) => (isMounted ? 1 : 0),
     position: "fixed",
-    top: ({ loc, isMounted }: any) => (isMounted ? loc.y : innerHeight - 150),
-    left: ({ loc, isMounted }: any) => (isMounted ? loc.x : 50),
-    height: ({ height }: any) => height,
-    width: ({ width }: any) => width,
-    backgroundColor: "tomato",
-    border: "2px black solid",
-    borderRadius: 2,
-    padding: 10,
-    fontSize: 24,
-    fontWeight: "bold",
-    transformOrigin: ({ origin }: any) =>
-      `${origin ? origin.x : 0}px ${origin ? origin.y : 0}px`,
-    transition: ({ duration }: any) =>
-      `all ${duration ? duration : 300}ms ease-out`,
-    transform: ({ isMounted, deg, offsetX }: any) =>
-      isMounted
-        ? `rotate(${deg}deg) translateX(${offsetX}px)`
-        : `rotate(${Math.min(deg, -deg)}deg)`,
-    zIndex: 99,
+    top: getCardTopLoc,
+    Left: getCardLeftLoc,
+    transform: getCardTransform,
+    transition: ({ duration }: useStyleProps) => `all ${duration}ms ease-in`,
   },
-  text: {},
 } as StyleRules);
 
 interface CardProps {
-  loc: Point;
-  src: string;
-  alt?: string;
+  startLoc?: Point;
+  endLoc?: Point;
+  isToHand?: boolean;
+  handIdx?: number;
+  noCardsInHand?: number;
+  isExpand?: boolean;
+  duration?: number;
+  delay?: number;
+
   width?: number;
   height?: number;
+}
+
+interface useStyleProps {
+  isMounted?: boolean;
+  startLoc?: Point;
+  endLoc?: Point;
+  isToHand?: boolean;
+  handIdx?: number;
+  noCardsInHand?: number;
+  isExpand?: boolean;
   duration?: number;
-  deg?: number;
-  origin?: Point;
-  offsets?: Point;
-  children?: any;
+  delay?: number;
+
+  width?: number;
+  height?: number;
 }
 
 const Card: React.FC<CardProps> = ({
-  loc,
-  src,
-  alt,
+  children,
+  startLoc,
+  endLoc,
+  isToHand,
+  handIdx,
+  noCardsInHand,
+  isExpand,
+  duration,
+
   width,
   height,
-  deg,
-  origin,
-  offsets,
-  duration,
-  children,
+  delay,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isDismounted, setIsDismounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    setTimeout(() => setIsDismounted(true), duration ? duration : 300);
-  }, [duration]);
+    let tid: NodeJS.Timeout;
+    if (delay && delay > 0) {
+      tid = setTimeout(() => setIsMounted(true), delay);
+    } else setIsMounted(true);
+
+    return () => {
+      clearTimeout(tid);
+    };
+  }, [delay]);
 
   const classes = useStyles({
-    loc,
-    origin,
+    isMounted,
+    children,
+    startLoc,
+    endLoc,
+    isToHand,
+    handIdx,
+    noCardsInHand,
+    isExpand,
+    duration,
     width,
     height,
-    deg,
-    offsetX: offsets ? offsets.x : 0,
-    duration,
-    isMounted,
-  });
+  } as useStyleProps);
 
-  return !isDismounted && <div className={classes.card}>{children}</div>;
+  return (
+    <div className={classes.animation}>
+      <CardStaticComponent loc={Point.at(0, 0)} width={width} height={height} />
+    </div>
+  );
 };
 
 export default React.memo(Card, () => true);

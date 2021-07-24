@@ -4,6 +4,8 @@ import App from "./App";
 import "./index.css";
 
 import battleReducer from "./store/reducers/battle";
+import playerReducer from "./store/reducers/player";
+import settingReducer from "./store/reducers/setting";
 
 import { createStore, applyMiddleware, compose, combineReducers } from "redux";
 import { Provider } from "react-redux";
@@ -15,7 +17,9 @@ import { CssBaseline } from "@material-ui/core";
 const composeEnhancers = compose;
 
 const rootReducer = combineReducers({
-  battle: battleReducer
+  battle: battleReducer,
+  player: playerReducer,
+  setting: settingReducer,
 });
 
 const store = createStore(

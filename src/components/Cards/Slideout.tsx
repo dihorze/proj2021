@@ -14,9 +14,6 @@ const useStyles = makeStyles({
     left: ({ loc, isMounted }: any) => (isMounted ? loc.x : innerWidth - 50),
     height: ({ height, isMounted }: any) => (isMounted ? height : 0.1 * height),
     width: ({ width, isMounted }: any) => (isMounted ? width : 0.1 * width),
-    backgroundColor: "tomato",
-    border: "2px black solid",
-    borderRadius: 2,
     padding: 10,
     fontSize: 24,
     fontWeight: "bold",
@@ -31,6 +28,8 @@ const useStyles = makeStyles({
           : "scale(1.3)"
         : "rotate(0.5turn) scale(1.3)",
     zIndex: 0,
+    backgroundImage: "url('./assets/papercard.png')",
+    backgroundSize: "cover"
   },
   text: {},
 } as StyleRules);
