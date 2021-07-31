@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import "./index.css";
 
+import animationReducer from "./store/reducers/animation";
 import battleReducer from "./store/reducers/battle";
 import playerReducer from "./store/reducers/player";
 import settingReducer from "./store/reducers/setting";
@@ -17,6 +18,7 @@ import { CssBaseline } from "@material-ui/core";
 const composeEnhancers = compose;
 
 const rootReducer = combineReducers({
+  animation: animationReducer,
   battle: battleReducer,
   player: playerReducer,
   setting: settingReducer,

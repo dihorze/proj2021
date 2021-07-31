@@ -12,7 +12,6 @@ import {
   DELETE_CARDS_FROM_DRAW_PILE,
   DELETE_CARDS_FROM_HAND,
   DELETE_ONE_CARDS,
-  QUEUE_ANIMATION,
   SELECT_CARD,
   SET_AIMING_CARD,
   SET_HOVERED_CARD,
@@ -21,7 +20,6 @@ import {
   UNSELECT_CARD,
 } from "../actions/types";
 import {
-  BattleAnimationStateBuilder,
   BattleStateBuilder,
   CardTableStateBuilder,
 } from "../stateModels/battleModels";
@@ -82,17 +80,9 @@ const battleReducer = (state = BattleStateBuilder.init(), action: any) => {
   }
 };
 
-const animationReducer = (state = BattleAnimationStateBuilder.init(), action: any) => {
-  switch(action.type) {
-    case QUEUE_ANIMATION:
-      return BattleAnimationStateBuilder.queueAnimation(state, action?.animation);
-    default:
-      return state;
-  }
-}
+
 
 export default combineReducers({
   card: cardReducer,
-  battle: battleReducer,
-  animation: animationReducer
+  battle: battleReducer
 });

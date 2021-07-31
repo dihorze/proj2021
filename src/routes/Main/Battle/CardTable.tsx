@@ -1,10 +1,8 @@
 import React, { Component } from "react";
 import { Button1 } from "../../../components/Buttons/Buttons";
 import { CardComponent } from "../../../components/Cards/Card";
-import SlideinCard from "../../../components/Cards/Slidein";
 import SlideoutCard from "../../../components/Cards/Slideout";
 import FadeoutCard from "../../../components/Cards/Fadeout";
-import TearoffCard from "../../../components/Cards/Tearoff";
 import { withMouseContext } from "../../../components/context/withMouseContext";
 import {
   activeZoneBottomLineY,
@@ -17,6 +15,7 @@ import {
   getCardPos,
   origin,
   innerWidth,
+  sinkCoefficient,
 } from "../../../data/Battlefield";
 import { inverse, norm } from "../../../model/fomula";
 import { Point } from "../../../model/positioning";
@@ -46,7 +45,8 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
       nextProps.selectedCard === CardTypes.NONE &&
       this.props.hoveredCard === nextProps.hoveredCard &&
       this.props.aimingCard === nextProps.aimingCard &&
-      this.props.cards === nextProps.cards
+      this.props.cards === nextProps.cards &&
+      this.props.slideInAnimation === nextProps.slideInAnimation
     )
       return false;
     return true;
@@ -59,9 +59,7 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
 
   addMany = () => {
     const noToAdd = 5;
-    const cards = new Array(noToAdd)
-      .fill(0)
-      .map(() => getRandomCard());
+    const cards = new Array(noToAdd).fill(0).map(() => getRandomCard());
     this.props.addManyCards(cards);
   };
 
@@ -136,6 +134,8 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
 
     const { classes } = this.props;
 
+    const slideInAnimKeys = this.props.slideInAnimation.map((a) => a.card.key);
+
     return (
       <>
         <Button1
@@ -180,10 +180,19 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
               this.props.hoveredCard === idx &&
               this.props.selectedCard === CardTypes.NONE
             }
+            isOnCards={this.props.hoveredCard >= 0}
+            isAiming={this.props.aimingCard === key}
             hoverOffsets={hoverOffsets}
             offsets={offsets}
             width={cWidth}
             height={cHeight}
+            slideInProps={
+              slideInAnimKeys.includes(key)
+                ? this.props.slideInAnimation[
+                    slideInAnimKeys.findIndex((k) => k === key)
+                  ]
+                : null
+            }
             onMouseEnter={this.cardEnter(idx)}
             onMouseMove={this.cardMove(idx)}
             onMouseLeave={this.cardLeave}
@@ -274,7 +283,7 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
 
     const p = Point.at(
       (innerWidth - cWidth) / 2 + origin.y * Math.sin(rad_alpha),
-      cTop + origin.y * (1 - Math.cos(rad_alpha))
+      cTop + sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha))
     );
 
     const targetCardIndex =
@@ -308,7 +317,10 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
       o: Point.at(cWidth / 2, cHeight / 2),
       deg: offset * degInterval,
       key,
-      hoverOffsets: Point.at(0, origin.y * (1 - Math.cos(rad_alpha))), // card being hoverd => offset Y
+      hoverOffsets: Point.at(
+        0,
+        sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha))
+      ), // card being hoverd => offset Y
       offsets: Point.at(
         sign * norm(idx, targetCardIndex, cardShiftSigma, cardShiftMagnitude),
         0

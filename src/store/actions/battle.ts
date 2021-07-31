@@ -2,7 +2,9 @@ import { AnyAction } from "@reduxjs/toolkit";
 import { RootStateOrAny } from "react-redux";
 import { ThunkAction } from "redux-thunk";
 import { shuffle } from "../../components/util/functions";
-import { BattleAnimation, Card } from "../../model/classes";
+import { Card, Anim } from "../../model/classes";
+import { SLIDE_TO_HAND } from "../stateModels/animationTypes";
+import { PlayAnimation, removeSlideInAnimation } from "./animation";
 import {
   ACTIVATE_AIMING_CARD,
   ADD_CARDS_TO_DISCARD_PILE,
@@ -16,7 +18,6 @@ import {
   DELETE_CARDS_FROM_DRAW_PILE,
   DELETE_CARDS_FROM_HAND,
   DELETE_ONE_CARDS,
-  QUEUE_ANIMATION,
   SELECT_CARD,
   SET_AIMING_CARD,
   SET_HOVERED_CARD,
@@ -136,6 +137,28 @@ export const deleteCardsFromDiscardPile = (keys: Array<string>) => {
   };
 };
 
+export const addCardsToHandAnimated = (
+  cardsToAdd: Array<Card>
+): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) => {
+    const cards = [...getState().battle.card.cards];
+    // to-do: create callback to display cards ? and remove animation states
+    dispatch(addCardsToHand(cardsToAdd));
+    // slide in animation
+    const slideInAnim: Anim = {
+      type: SLIDE_TO_HAND,
+      payload: {
+        callbacks: [],
+        cardsToAdd,
+        cards,
+        removeSlideInAnimation: (key: string) =>
+          dispatch(removeSlideInAnimation(key)),
+      },
+    };
+    dispatch(PlayAnimation(slideInAnim));
+  };
+};
+
 export const drawCards = (
   quantity = -1
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
@@ -151,31 +174,35 @@ export const drawCards = (
     // end recursion if no cards in both piles
     if (n <= 0 && battle.card.discardPileCards.length <= 0) return;
     const newCards = [];
-    
+
     const nDraw = Math.min(quantity, n); // max to draw with draw pile
+
+    if (nDraw > 0) {
+      if (nHand + nDraw <= maxHand) {
+        newCards.push(...newDrawPileCards.slice(0, nDraw));
+        quantity -= nDraw;
+        nHand += nDraw;
+        n -= nDraw;
+      } else {
+        newCards.push(...newDrawPileCards.slice(0, maxHand - nHand));
+        quantity -= maxHand - nHand;
+        nHand = maxHand;
+        n -= maxHand - nHand;
+      }
     
-    if (nHand + nDraw <= maxHand) {
-      newCards.push(...newDrawPileCards.slice(0, nDraw));
-      quantity -= nDraw;
-      nHand += nDraw;
-      n -= nDraw;
-    } else {
-      newCards.push(...newDrawPileCards.slice(0, maxHand - nHand));
-      quantity -= (maxHand - nHand);
-      nHand = maxHand;
-      n -= (maxHand - nHand);
+      dispatch(deleteCardsFromDrawPile(newCards.map((c) => c.key)));
+      dispatch(addCardsToHandAnimated(newCards));
     }
+
     
-    dispatch(deleteCardsFromDrawPile(newCards.map((c) => c.key)));
-    dispatch(addCardsToHand(newCards));
 
     if (quantity > 0 && nHand < maxHand) {
       setTimeout(() => {
         dispatch(shuffleDiscardToDraw());
         setTimeout(() => {
           dispatch(drawCards(quantity));
-        }, 750); // for shuffling
-      }, 500); // for drawing
+        }, 800); // for shuffling
+      }, 1000); // need to wait for draw pile is clean for simulation purpose
     }
   };
 };
@@ -264,12 +291,3 @@ export const toggleDiscardPile = () => {
     type: TOGGLE_DISCARD_PILE,
   };
 };
-
-// Animation Related
-
-export const queueAnimation = (animation: BattleAnimation) => {
-  return {
-    type: QUEUE_ANIMATION,
-    animation
-  }
-}

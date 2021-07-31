@@ -8,6 +8,7 @@ import { StyleRules } from "@material-ui/core";
 import Interaction from "./Interaction";
 import AimingArrow from "./AimingArrow";
 import BattleUI from "./BattleUI/BattleUI";
+import BattleAnimation from "./BattleAnimation/BattleAnimation";
 
 
 interface BattlefieldProps {
@@ -38,6 +39,7 @@ class Battlefield extends React.Component<BattlefieldProps> {
           <CardTable />
           <AimingArrow />
           <BattleUI />
+          <BattleAnimation />
         </div>
         <Interaction />
       </MultiProvider>

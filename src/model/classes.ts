@@ -60,12 +60,12 @@ export class Card {
   }
 }
 
-export interface BattleAnimation {
+export interface Anim {
   type: string;
   payload: Payload;
 }
 
 interface Payload {
-  callback?: Function;
+  callbacks?: Function[];
   [key: string]: any;
 }

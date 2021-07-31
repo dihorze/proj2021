@@ -3,14 +3,12 @@ import React from "react";
 import { withStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { connect } from "react-redux";
-import {
-  
-} from "../../../../store/actions/battle";
-import { Card } from "../../../../model/classes";
+import {} from "../../../../store/actions/battle";
+import SlideIn, { SlideInProps } from "../../../../components/Cards/SlideIn";
 
 interface BattleAnimationProps {
   classes: Record<string, string>;
-  
+  slideInProps: SlideInProps[];
 }
 
 const styles: StyleRules = {};
@@ -21,7 +19,9 @@ class BattleAnimation extends React.Component<BattleAnimationProps> {
 
     return (
       <>
-        
+        {/* {this.props.slideInProps.map((props) => (
+          <SlideIn {...props} key={props.handIdx}/>
+        ))} */}
       </>
     );
   }
@@ -29,15 +29,15 @@ class BattleAnimation extends React.Component<BattleAnimationProps> {
 
 const StyledBattleAnimation = withStyles(styles)(BattleAnimation);
 
-const mapStateToProps = ({ battle }) => {
+const mapStateToProps = ({ battle, animation }) => {
   return {
     drawPileCards: battle.card.drawPileCards,
     showDrawPile: battle.battle.showDrawPile,
     discardPileCards: battle.card.discardPileCards,
     showDiscardPile: battle.battle.showDiscardPile,
+
+    slideInProps: animation.animation.slideInAnimation,
   };
 };
 
-export default connect(mapStateToProps, {
-  
-})(StyledBattleAnimation);
+export default connect(mapStateToProps, {})(StyledBattleAnimation);

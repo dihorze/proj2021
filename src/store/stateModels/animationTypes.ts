@@ -1,0 +1,1 @@
+export const SLIDE_TO_HAND = "SLIDE_TO_HAND";

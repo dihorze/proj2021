@@ -1,3 +1,4 @@
+import { SlideInProps } from "../../../components/Cards/SlideIn";
 import { Card } from "../../../model/classes";
 import { Point } from "../../../model/positioning";
 import {
@@ -33,6 +34,8 @@ export interface CardTableProps {
   startBattle: () => void;
   playACard: (card: Card) => void;
   drawCards: () => void;
+
+  slideInAnimation: SlideInProps[];
 }
 
 export interface CardTableStates {
@@ -41,12 +44,14 @@ export interface CardTableStates {
   discardingCards: Record<string, number>;
 }
 
-export const CardTableMapStateToProps = ({ battle }) => {
+export const CardTableMapStateToProps = ({ battle, animation }) => {
   return {
     cards: battle.card.cards,
     aimingCard: battle.card.aimingCard,
     hoveredCard: battle.card.hoveredCard,
     selectedCard: battle.card.selectedCard,
+    
+    slideInAnimation: animation.animation.slideInAnimation
   };
 };
 

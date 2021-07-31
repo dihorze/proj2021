@@ -3,20 +3,30 @@ import { makeStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { Point } from "../../model/positioning";
 import { CardStaticComponent } from "./Card";
-import { cTop, degInterval, origin } from "../../data/Battlefield";
+import {
+  cHeight,
+  cTop,
+  cWidth,
+  degInterval,
+  origin,
+  sinkCoefficient,
+} from "../../data/Battlefield";
+import { Card } from "../../model/classes";
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
 
+export const slideInDuration = 100; // only thing matters in this file
+
 const getCardTopLoc = (props: useStyleProps) => {
   const { isMounted, startLoc, endLoc, isToHand, handIdx, noCardsInHand } =
     props;
-  if (!isMounted) return startLoc?.y || innerHeight - 150;
+  // if (!isMounted) return startLoc?.y || innerHeight - 150;
   if (isToHand) {
     const offset = handIdx - (noCardsInHand - 1) / 2;
     const alpha = offset * degInterval;
     const rad_alpha = (alpha / 180) * Math.PI;
-    return cTop + origin.y * (1 - Math.cos(rad_alpha));
+    return cTop + sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha));
   }
   return endLoc?.y || innerHeight - 150;
 };
@@ -31,7 +41,7 @@ const getCardLeftLoc = (props: useStyleProps) => {
     noCardsInHand,
     width,
   } = props;
-  if (!isMounted) return startLoc?.x || 50;
+  // if (!isMounted) return startLoc?.x || 50;
   if (isToHand) {
     const offset = handIdx - (noCardsInHand - 1) / 2;
     const alpha = offset * degInterval;
@@ -43,11 +53,11 @@ const getCardLeftLoc = (props: useStyleProps) => {
 
 const getCardTransform = (props: useStyleProps) => {
   const { isMounted, isToHand, isExpand, handIdx, noCardsInHand } = props;
-  if (!isMounted) {
-    if (isExpand) return `scale(0.1)`;
-    else return "";
-  }
   if (isToHand) {
+    if (!isMounted) {
+      if (isExpand) return `scale(0.5) translate(-${innerWidth}px, 50%)`;
+      else return "translate(-100%, -100%)";
+    }
     const offset = handIdx - (noCardsInHand - 1) / 2;
     const deg = offset * degInterval;
     return `rotate(${deg}deg)`;
@@ -60,13 +70,13 @@ const useStyles = makeStyles({
     opacity: ({ isMounted }: useStyleProps) => (isMounted ? 1 : 0),
     position: "fixed",
     top: getCardTopLoc,
-    Left: getCardLeftLoc,
+    left: getCardLeftLoc,
     transform: getCardTransform,
-    transition: ({ duration }: useStyleProps) => `all ${duration}ms ease-in`,
+    transition: ({ duration }: useStyleProps) => `all ${duration}ms`,
   },
 } as StyleRules);
 
-interface CardProps {
+export interface SlideInProps {
   startLoc?: Point;
   endLoc?: Point;
   isToHand?: boolean;
@@ -78,6 +88,9 @@ interface CardProps {
 
   width?: number;
   height?: number;
+  card?: Card;
+
+  callback: Function;
 }
 
 interface useStyleProps {
@@ -95,7 +108,7 @@ interface useStyleProps {
   height?: number;
 }
 
-const Card: React.FC<CardProps> = ({
+const SlideIn: React.FC<SlideInProps> = ({
   children,
   startLoc,
   endLoc,
@@ -108,6 +121,9 @@ const Card: React.FC<CardProps> = ({
   width,
   height,
   delay,
+
+  card,
+  callback,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -132,15 +148,20 @@ const Card: React.FC<CardProps> = ({
     noCardsInHand,
     isExpand,
     duration,
-    width,
+    width: width || cWidth,
     height,
   } as useStyleProps);
 
   return (
-    <div className={classes.animation}>
-      <CardStaticComponent loc={Point.at(0, 0)} width={width} height={height} />
+    <div className={classes.animation} onTransitionEnd={() => callback()}>
+      <CardStaticComponent
+        loc={Point.at(0, 0)}
+        width={width || cWidth}
+        height={height || cHeight}
+        card={card}
+      />
     </div>
   );
 };
 
-export default React.memo(Card, () => true);
+export default React.memo(SlideIn, () => true);

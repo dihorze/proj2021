@@ -7,11 +7,10 @@ import { ADeckOfCards } from "../../../../components/Deck/ADeckOfCards";
 
 const useStyles = makeStyles({
   img: {
-    width: 96,
-    height: 96,
+    width: 90,
     position: "fixed",
-    right: 50,
-    bottom: 20,
+    right: 30,
+    bottom: 24,
     transition: "transform 300ms ease-in",
     zIndex: ({show}: any) => show ? 201 : "auto",
     "&:hover": {
@@ -20,6 +19,13 @@ const useStyles = makeStyles({
     "&:active": {
       transform: "rotate(0.4turn)"
     }
+  },
+  txt: {
+    position: "fixed",
+    right: 75,
+    bottom: 20,
+    fontSize: "1em",
+    color: "#fff"
   },
 } as StyleRules);
 
@@ -42,6 +48,7 @@ export const DiscardStack: React.FC<DiscardStackProps> = ({
 
   return (
     <>
+    <div className={classes.txt}>{cards.length}</div>
       <img
         className={classes.img}
         src="./assets/stack.png"

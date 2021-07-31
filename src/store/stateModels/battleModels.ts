@@ -1,6 +1,6 @@
 import { shuffle } from "../../components/util/functions";
 import { CardTypes } from "../../data/deck";
-import { BattleAnimation, Card } from "../../model/classes";
+import { Card } from "../../model/classes";
 
 interface CardTableState {
   drawPileCards?: Array<Card>;
@@ -125,9 +125,11 @@ export class CardTableStateBuilder {
 
   static addCardsToHand(state: CardTableState, cards: Card[]): CardTableState {
     const newCards = state.cards.concat(cards.map((c) => c.copy()));
-    return CardTableStateBuilder.withNewArray(state, {
+    const newState = CardTableStateBuilder.withNewArray(state, {
       cards: newCards,
     });
+    CardTableStateBuilder.clearSecondaryStates(newState);
+    return newState;
   }
 
   // for play cards and delete cards
@@ -248,38 +250,4 @@ export class BattleStateBuilder {
   }
 }
 
-interface BattleAnimationState {
-  queue: BattleAnimation[];
-}
 
-export class BattleAnimationStateBuilder {
-  static init(): BattleAnimationState {
-    return {
-      queue: [],
-    };
-  }
-
-  static copy(state: BattleAnimationState): BattleAnimationState {
-    return {
-      queue: state.queue,
-    };
-  }
-
-  static withNewArray(
-    state: BattleAnimationState,
-    newArrays: BattleAnimationState
-  ) {
-    const newState = BattleAnimationStateBuilder.copy(state);
-    newState.queue = newArrays.queue || newState.queue;
-    return newState;
-  }
-
-  static queueAnimation(
-    state: BattleAnimationState,
-    animation: BattleAnimation
-  ) {
-    return BattleAnimationStateBuilder.withNewArray(state, {
-      queue: state.queue.concat(animation)
-    });
-  }
-}

@@ -10,7 +10,7 @@ const useStyles = makeStyles({
   img: {
     width: 80,
     position: "fixed",
-    left: 50,
+    left: 30,
     bottom: 40,
     transition: "transform 300ms ease-in",
     zIndex: ({ show }: any) => (show ? 201 : "auto"),
@@ -20,6 +20,13 @@ const useStyles = makeStyles({
     "&:active": {
       transform: "rotate(-0.4turn)",
     },
+  },
+  txt: {
+    position: "fixed",
+    left: 75,
+    bottom: 20,
+    fontSize: "1em",
+    color: "#fff"
   },
 } as StyleRules);
 
@@ -44,11 +51,11 @@ export const DrawStack: React.FC<DrawStackProps> = ({
 
   useEffect(() => {
     setShuffledCards(shuffle(cards));
-    console.log("effect");
   }, [cards]);
 
   return (
     <>
+      <div className={classes.txt}>{cards.length}</div>
       <img
         className={classes.img}
         src="./assets/draw_stack.png"

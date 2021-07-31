@@ -13,5 +13,7 @@ export const activeCardTableZoneBottomLineY = 550;
 export const cardShiftSigma = 2;
 export const cardShiftMagnitude = 300;
 
+export const sinkCoefficient = 1.5;
+
 export const getCardPos = (mousePos: Point) =>
   mousePos.subtract(Point.at(cWidth / 2, cHeight / 2)).add(Point.at(10, 0));
