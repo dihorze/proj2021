@@ -2,26 +2,17 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { Point } from "../../model/positioning";
-import {
-  cTop,
-  degInterval,
-  sinkCoefficient,
-  origin,
-  cWidth,
-  cHeight,
-} from "../../data/Battlefield";
+import { cWidth, cHeight, cWidthL, cHeightL } from "../../data/Battlefield";
 import { CardStaticComponent } from "./Card";
 import { Card } from "../../model/classes";
 
+const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
 
 interface useStyleProps {
   loc?: Point;
   endLoc?: Point;
 
-  isFromHand?: boolean;
-  handIdx?: number;
-  noCardsInHand?: number;
   isShrink?: boolean;
   duration?: number;
 
@@ -32,31 +23,30 @@ interface useStyleProps {
 }
 
 const getTransition = (props: useStyleProps) => {
-  // return "all 5000ms ease-in"
-  return `all ${props.duration}ms`;
+  return `offset-distance ${props.duration}ms ease-in, transform ${props.duration}ms ease-out, opacity ${props.duration}ms ease-in`;
 };
 
 const getTransform = (props: useStyleProps) => {
-  const { handIdx, noCardsInHand, isExiting, isShrink } = props;
+  const { isExiting, isShrink } = props;
 
   if (!isExiting) {
-    const offset = handIdx - (noCardsInHand - 1) / 2;
-    const deg = offset * degInterval;
-    return `rotate(${deg}deg)`;
+    return "scale(1.3)";
   }
 
-  return isShrink ? "scale(0.01) rotate(0.4turn)" : "rotate(0.4turn)";
+  return isShrink ? "scale(0.01)" : "scale(1.3)";
 };
 
 const getOffsetPath = (props: useStyleProps) => {
-  const { loc, refLoc, width, height } = props;
+  const { width, height, loc, endLoc } = props;
 
-  const baseTransform = Point.at(loc?.x - refLoc?.x, loc?.y - refLoc?.y);
+  const desLoc = endLoc || Point.at(innerWidth - 25, innerHeight - 25); // absolute
+  const baseTransform = Point.at(0, 0);
+  const desRelLoc = desLoc.subtract(loc);
   const offset = Point.at(width / 2, height / 2);
   const p1 = baseTransform.add(offset);
-  const p2 = Point.at(innerWidth / 2, 50).add(offset);
-  const cp1 = Point.at(baseTransform.x, - 0.2 * baseTransform.x + baseTransform.y).add(offset);
-  const cp2 = Point.at(0, 0.1 * baseTransform.x - 50).add(offset);
+  const p2 = desRelLoc.add(offset);
+  const cp1 = baseTransform.subtract(Point.at(0, innerHeight / 2)).add(offset);
+  const cp2 = Point.at(desRelLoc.x / 2, desRelLoc.y / 2).add(offset);
 
   return `path('M ${p1.x} ${p1.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${p2.x} ${p2.y}')`;
 };
@@ -65,16 +55,15 @@ const useStyles = makeStyles({
   ctn: {
     opacity: ({ isExiting }: useStyleProps) => (isExiting ? "0" : "1"),
     position: "fixed",
-    top: ({ refLoc }: useStyleProps) => refLoc.y,
-    left: ({ refLoc }: useStyleProps) => refLoc.x,
+    top: ({ loc }: useStyleProps) => loc.y,
+    left: ({ loc }: useStyleProps) => loc.x,
     transformOrigin: "center",
     transition: getTransition,
     transform: getTransform,
-
     offsetPath: getOffsetPath,
     offsetDistance: ({ isExiting }: useStyleProps) =>
       isExiting ? "100%" : "0%",
-    offsetRotate: "0deg",
+    offsetRotate: "auto 90deg",
 
     zIndex: 0,
     backgroundImage: "url('./assets/papercard.png')",
@@ -82,13 +71,10 @@ const useStyles = makeStyles({
   },
 } as StyleRules);
 
-export interface SlideOutProps {
-  startLoc?: Point;
+export interface FlyOutProps {
+  loc?: Point;
   endLoc?: Point;
 
-  isFromHand?: boolean;
-  handIdx?: number;
-  noCardsInHand?: number;
   isShrink?: boolean;
   duration?: number;
   delay?: number;
@@ -100,13 +86,10 @@ export interface SlideOutProps {
   height?: number;
 }
 
-const SlideOut: React.FC<SlideOutProps> = ({
-  startLoc,
+const FlyOut: React.FC<FlyOutProps> = ({
+  loc,
   endLoc,
 
-  isFromHand,
-  handIdx,
-  noCardsInHand,
   isShrink,
   duration,
   delay,
@@ -128,23 +111,15 @@ const SlideOut: React.FC<SlideOutProps> = ({
       clearTimeout(tid);
     };
   }, [delay]);
+
   const w = width ? width : cWidth;
   const h = height ? height : cHeight;
-  const refLoc = Point.at((innerWidth - w) / 2, cTop);
 
   const classes = useStyles({
-    loc: getCardLoc({
-      isFromHand,
-      startLoc,
-      handIdx,
-      noCardsInHand,
-      width: w,
-    }),
+    loc: loc.subtract(Point.at(w / 2, h / 2)).add(Point.at(10, 0)),
     endLoc,
-    refLoc,
 
     duration,
-    isFromHand,
 
     isShrink,
     isExiting,
@@ -152,7 +127,7 @@ const SlideOut: React.FC<SlideOutProps> = ({
     width: w,
     height: h,
   });
-
+  // onTransitionEnd={() => callback()}
   return (
     <div className={classes.ctn} onTransitionEnd={() => callback()}>
       <CardStaticComponent
@@ -165,18 +140,4 @@ const SlideOut: React.FC<SlideOutProps> = ({
   );
 };
 
-const getCardLoc = (props: SlideOutProps) => {
-  const { isFromHand, startLoc, handIdx, noCardsInHand, width } = props;
-  if (isFromHand) {
-    const offset = handIdx - (noCardsInHand - 1) / 2;
-    const alpha = offset * degInterval;
-    const rad_alpha = (alpha / 180) * Math.PI;
-    return Point.at(
-      (innerWidth - width) / 2 + origin.y * Math.sin(rad_alpha),
-      cTop + sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha))
-    );
-  }
-  return startLoc;
-};
-
-export default React.memo(SlideOut, () => true);
+export default React.memo(FlyOut, () => true);

@@ -9,6 +9,8 @@ import {
   RUN_NEXT_ANIMATION,
   DEQUEUE_ANIMATION,
   REMOVE_SLIDE_IN_ANIMATION,
+  REMOVE_SLIDE_OUT_ANIMATION,
+  REMOVE_FLY_OUT_ANIMATION,
 } from "./types";
 
 export const queueAnimation = (animation: Anim) => {
@@ -66,6 +68,20 @@ export const PlayAnimation = (
 export const removeSlideInAnimation = (key: string) => {
   return {
     type: REMOVE_SLIDE_IN_ANIMATION,
+    key
+  }
+}
+
+export const removeSlideOutAnimation = (key: string) => {
+  return {
+    type: REMOVE_SLIDE_OUT_ANIMATION,
+    key
+  }
+}
+
+export const removeFlyOutAnimation = (key: string) => {
+  return {
+    type: REMOVE_FLY_OUT_ANIMATION,
     key
   }
 }

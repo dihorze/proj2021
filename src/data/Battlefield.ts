@@ -5,6 +5,10 @@ export const innerWidth = window.innerWidth;
 export const degInterval = 4; // card spacings
 export const cWidth = 140;
 export const cHeight = 198;
+
+export const cWidthL = 182;
+export const cHeightL = 257;
+
 export const cTop = 427;
 export const origin = Point.at(0, 1500);
 export const activeZoneBottomLineY = 400;

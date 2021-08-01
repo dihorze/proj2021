@@ -6,6 +6,8 @@ import {
   RUN_NEXT_ANIMATION,
   DEQUEUE_ANIMATION,
   REMOVE_SLIDE_IN_ANIMATION,
+  REMOVE_SLIDE_OUT_ANIMATION,
+  REMOVE_FLY_OUT_ANIMATION,
 } from "../actions/types";
 import { AnimationStateBuilder } from "../stateModels/animationModels";
 
@@ -25,9 +27,12 @@ const animationReducer = (
     case DEQUEUE_ANIMATION:
       return AnimationStateBuilder.dequeueAnimation(state);
 
-
     case REMOVE_SLIDE_IN_ANIMATION:
       return AnimationStateBuilder.removeSlideInAnimation(state, action?.key);
+    case REMOVE_SLIDE_OUT_ANIMATION:
+      return AnimationStateBuilder.removeSlideOutAnimation(state, action?.key);
+    case REMOVE_FLY_OUT_ANIMATION:
+      return AnimationStateBuilder.removeFlyOutAnimation(state, action?.key);
     default:
       return state;
   }

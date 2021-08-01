@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Button1 } from "../../../components/Buttons/Buttons";
 import { CardComponent } from "../../../components/Cards/Card";
-import SlideoutCard from "../../../components/Cards/Slideout";
 import FadeoutCard from "../../../components/Cards/Fadeout";
 import { withMouseContext } from "../../../components/context/withMouseContext";
 import {
@@ -33,9 +32,7 @@ import { Card } from "../../../model/classes";
 
 export class CardTable extends Component<CardTableProps, CardTableStates> {
   state = {
-    exitingCards: [],
-    discardingCards: {}, // from hand
-    // enteringCards: [],
+
   };
 
   shouldComponentUpdate(nextProps: CardTableProps, nextState: CardTableStates) {
@@ -63,20 +60,6 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
     this.props.addManyCards(cards);
   };
 
-  deleteAll = () => {
-    const oldCards = [...this.props.cards];
-    this.props.deleteAllCards();
-    const discardingCards = {};
-    oldCards.forEach((card, idx) => {
-      discardingCards[card.key] = idx;
-    });
-    this.setState({
-      // enteringCards: [],
-      exitingCards: [],
-      discardingCards,
-    });
-  };
-
   cardEnter = (idx: number) => () => {
     if (
       idx !== this.props.hoveredCard &&
@@ -101,20 +84,10 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
 
   cardMouseUp = (event: React.MouseEvent) => {
     if (event.button === 0 && this.props.mousePos.y < activeZoneBottomLineY) {
-      this.props.playACard(Card.getCardFromKey(this.props.selectedCard));
-      this.setState((state: CardTableStates) => {
-        // console.log(state);
-        const key = this.props.selectedCard;
-        const n = state.exitingCards.length;
-        const newExitingCards =
-          n > 0 ? [state.exitingCards[n - 1], key] : [key];
-        // const newEnteringCards = state.enteringCards.filter((c) => c !== key);
-        this.props.deleteOneCard(key);
-        return {
-          exitingCards: newExitingCards,
-          // enteringCards: newEnteringCards,
-        };
-      });
+      this.props.playACard(
+        Card.getCardFromKey(this.props.selectedCard),
+        this.props.mousePos
+      );
     }
   };
 
@@ -130,7 +103,6 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
 
   render() {
     const cards = getCardLocs(this.state, this.props);
-    const dCards = getDiscardedCardLocs(this.state, this.props);
 
     const { classes } = this.props;
 
@@ -152,18 +124,12 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
         </Button1>
         <Button1
           btnStyle={{ position: "fixed", top: 300, left: 700, width: 150 }}
-          onClick={this.deleteAll}
-        >
-          Delete All
-        </Button1>
-        <Button1
-          btnStyle={{ position: "fixed", top: 300, left: 900, width: 150 }}
           onClick={this.props.startBattle}
         >
           Discussion Start
         </Button1>
         <Button1
-          btnStyle={{ position: "fixed", top: 350, left: 900, width: 150 }}
+          btnStyle={{ position: "fixed", top: 300, left: 900, width: 150 }}
           onClick={() => this.props.drawCards()}
         >
           Start Turn
@@ -201,53 +167,6 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
           >
             {key}
           </CardComponent>
-        ))}
-        {/* {this.state.enteringCards.map((key) => {
-          const c = cards.find((card) => card.key === key);
-          if (!c) return null; // in case of key duplication
-          return (
-            <SlideinCard
-              loc={c.loc}
-              offsets={c.offsets}
-              deg={c.deg}
-              key={c.key + "-slidein"}
-              origin={c.o}
-              width={cWidth}
-              height={cHeight}
-              src="test"
-              alt="test"
-            >
-              {key}
-            </SlideinCard>
-          );
-        })} */}
-        {this.state.exitingCards.map((key) => (
-          <FadeoutCard
-            key={key + "-out"}
-            src="test"
-            alt="test"
-            loc={getCardPos(this.props.mousePos)}
-            width={cWidth}
-            height={cHeight}
-          >
-            {key}
-          </FadeoutCard>
-        ))}
-        {dCards.map(({ loc, o, deg, key, offsets }) => (
-          <SlideoutCard
-            key={key + "-slideout-hand"}
-            src="test"
-            alt="test"
-            isHand
-            loc={loc}
-            origin={o}
-            deg={deg}
-            offsets={offsets}
-            width={cWidth}
-            height={cHeight}
-          >
-            {key}
-          </SlideoutCard>
         ))}
       </>
     );
@@ -328,49 +247,3 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
       card,
     };
   });
-
-const getDiscardedCardLocs = (
-  state: CardTableStates,
-  props: CardTableProps
-) => {
-  const keys = Object.keys(state.discardingCards);
-  if (keys.length === 0) return [];
-  const n = keys.length + props.cards.length;
-
-  return Object.keys(state.discardingCards).map((key: string) => {
-    const idx = state.discardingCards[key];
-    const offset = idx - (n - 1) / 2;
-    const alpha = offset * degInterval;
-    const rad_alpha = (alpha / 180) * Math.PI;
-
-    const p = Point.at(
-      (innerWidth - cWidth) / 2 + origin.y * Math.sin(rad_alpha),
-      cTop + origin.y * (1 - Math.cos(rad_alpha))
-    );
-
-    const targetCardIndex =
-      props.selectedCard === CardTypes.NONE
-        ? props.hoveredCard < 0
-          ? -1
-          : props.hoveredCard
-        : props.cards.findIndex((c) => c.key === props.selectedCard);
-
-    const sign =
-      idx === targetCardIndex || targetCardIndex < 0
-        ? 0
-        : idx < targetCardIndex
-        ? -1
-        : 1;
-
-    return {
-      loc: p,
-      o: Point.at(cWidth / 2, cHeight / 2),
-      deg: offset * degInterval,
-      key,
-      offsets: Point.at(
-        sign * norm(idx, targetCardIndex, cardShiftSigma, cardShiftMagnitude),
-        0
-      ),
-    };
-  });
-};

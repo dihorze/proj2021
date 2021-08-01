@@ -113,6 +113,16 @@ const useStyles = makeStyles({
       transform: "scale(1.1)",
     },
   },
+  cardStaticNoHover: {
+    borderRadius: 2,
+    width: ({ width }: any) => width,
+    height: ({ height }: any) => height,
+    padding: 10,
+    fontSize: 24,
+    fontWeight: "bold",
+    backgroundImage: "url('./assets/papercard.png')",
+    backgroundSize: "cover"
+  },
   // card content
   ctn: {
     width: "100%",
@@ -241,7 +251,21 @@ export const CardComponent: React.FC<CardProps> = ({
   );
 };
 
-export const CardStaticComponent: React.FC<CardProps> = ({
+interface CardStaticProps {
+  onClick?: (e: React.MouseEvent) => void;
+  onMouseEnter?: (e: React.MouseEvent) => void;
+  onMouseMove?: (e: React.MouseEvent) => void;
+  onMouseLeave?: (e: React.MouseEvent) => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
+  onMouseUp?: (e: React.MouseEvent) => void;
+  loc: Point;
+  width?: number;
+  height?: number;
+  card?: Card;
+  hasHoverEffect?: boolean;
+}
+
+export const CardStaticComponent: React.FC<CardStaticProps> = ({
   onClick,
   onMouseEnter,
   onMouseMove,
@@ -251,13 +275,15 @@ export const CardStaticComponent: React.FC<CardProps> = ({
   width,
   height,
   card,
+  hasHoverEffect,
   children,
 }) => {
   const classes = useStyles({ width, height });
-
+  const className = hasHoverEffect ? classes.cardStatic : classes.cardStaticNoHover;
+  
   return (
     <div
-      className={classes.cardStatic}
+      className={className}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseMove={onMouseMove}

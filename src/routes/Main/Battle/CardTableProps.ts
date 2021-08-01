@@ -32,16 +32,14 @@ export interface CardTableProps {
   setHoveredCard: (key: number) => void;
   clearHoveredCard: () => void;
   startBattle: () => void;
-  playACard: (card: Card) => void;
+  playACard: (card: Card, loc: Point) => void;
   drawCards: () => void;
 
   slideInAnimation: SlideInProps[];
 }
 
 export interface CardTableStates {
-  exitingCards: Array<string>;
-  // enteringCards: Array<string>;
-  discardingCards: Record<string, number>;
+
 }
 
 export const CardTableMapStateToProps = ({ battle, animation }) => {

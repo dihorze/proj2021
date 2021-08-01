@@ -1,10 +1,21 @@
 import { AnyAction } from "@reduxjs/toolkit";
 import { RootStateOrAny } from "react-redux";
 import { ThunkAction } from "redux-thunk";
+import { FlyOutProps } from "../../components/Cards/FlyOut";
 import { shuffle } from "../../components/util/functions";
 import { Card, Anim } from "../../model/classes";
-import { SLIDE_TO_HAND } from "../stateModels/animationTypes";
-import { PlayAnimation, removeSlideInAnimation } from "./animation";
+import { Point } from "../../model/positioning";
+import {
+  FLY_OUT,
+  SLIDE_FROM_HAND,
+  SLIDE_TO_HAND,
+} from "../stateModels/animationTypes";
+import {
+  PlayAnimation,
+  removeFlyOutAnimation,
+  removeSlideInAnimation,
+  removeSlideOutAnimation,
+} from "./animation";
 import {
   ACTIVATE_AIMING_CARD,
   ADD_CARDS_TO_DISCARD_PILE,
@@ -159,6 +170,27 @@ export const addCardsToHandAnimated = (
   };
 };
 
+export const deleteCardsFromHandAnimated = (
+  keysToDelete: Array<string>,
+  callback: Function
+): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) => {
+    const cards = [...getState().battle.card.cards];
+    const slideOutAnim: Anim = {
+      type: SLIDE_FROM_HAND,
+      payload: {
+        callbacks: [callback],
+        keysToDelete,
+        cards,
+        removeSlideOutAnimation: (key: string) =>
+          dispatch(removeSlideOutAnimation(key)),
+      },
+    };
+    dispatch(PlayAnimation(slideOutAnim));
+    dispatch(deleteCardsFromHand(keysToDelete)); // maybe replaced
+  };
+};
+
 export const drawCards = (
   quantity = -1
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
@@ -189,12 +221,10 @@ export const drawCards = (
         nHand = maxHand;
         n -= maxHand - nHand;
       }
-    
+
       dispatch(deleteCardsFromDrawPile(newCards.map((c) => c.key)));
       dispatch(addCardsToHandAnimated(newCards));
     }
-
-    
 
     if (quantity > 0 && nHand < maxHand) {
       setTimeout(() => {
@@ -241,25 +271,46 @@ export const discardCards = (
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch) => {
     const keys = cards.map((c) => c.key);
-    dispatch(deleteCardsFromHand(keys));
-    setTimeout(() => {
-      dispatch(addCardsToDiscardPile(cards));
-    }, 500);
+    dispatch(
+      deleteCardsFromHandAnimated(keys, () =>
+        dispatch(addCardsToDiscardPile(cards))
+      )
+    );
+  };
+}; // from hand
+
+export const discardPlayedCards = (
+  cards: Card[],
+  locs: Point[]
+): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) => {
+    const cardKeys = cards.map((c) => c.key);
+    const flyOutAnim: Anim = {
+      type: FLY_OUT,
+      payload: {
+        callbacks: [() => dispatch(addCardsToDiscardPile(cards))],
+        locs,
+        cardsToFly: cards,
+        removeFlyOutAnimation: (key: string) =>
+          dispatch(removeFlyOutAnimation(key)),
+      },
+    };
+    dispatch(PlayAnimation(flyOutAnim));
+    dispatch(deleteCardsFromHand(cardKeys));
   };
 };
 
 export const playACard = (
-  card: Card
+  card: Card,
+  loc: Point
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch) => {
     // here for simulation of the effect of the card
-    setTimeout(() => {
-      if (card.getIsShred()) return;
-      // TO-DO: here to put the card in the shred pile
-      else dispatch(discardCards([card]));
-    }, 500);
+    if (card.getIsShred()) return;
+    // TO-DO: here to put the card in the shred pile
+    else dispatch(discardPlayedCards([card], [loc]));
   };
-};
+}; // from hand
 
 export const endTurn = (): ThunkAction<
   void,
@@ -269,12 +320,7 @@ export const endTurn = (): ThunkAction<
 > => {
   return (dispatch, getState) => {
     const { battle } = getState();
-    const keys = battle.card.cards.map((c: Card) => c.key);
-    dispatch(deleteCardsFromHand(keys));
-    setTimeout(() => {
-      // play end turn animation and effects
-      dispatch(addCardsToDiscardPile([...battle.card.cards]));
-    }, 500);
+    dispatch(discardCards([...battle.card.cards]));
   };
 };
 

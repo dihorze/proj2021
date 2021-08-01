@@ -1,12 +1,16 @@
+import { FlyOutProps } from "../../components/Cards/FlyOut";
 import { slideInDuration, SlideInProps } from "../../components/Cards/SlideIn";
+import { SlideOutProps } from "../../components/Cards/Slideout";
 import { Card, Anim } from "../../model/classes";
-import { SLIDE_TO_HAND } from "./animationTypes";
+import { FLY_OUT, SLIDE_FROM_HAND, SLIDE_TO_HAND } from "./animationTypes";
 
 interface AnimationState {
   queue?: Anim[];
   isPlaying?: boolean;
 
   slideInAnimation?: SlideInProps[];
+  slideOutAnimation?: SlideOutProps[];
+  flyOutAnimation?: FlyOutProps[];
 }
 
 export class AnimationStateBuilder {
@@ -16,6 +20,8 @@ export class AnimationStateBuilder {
       isPlaying: false,
 
       slideInAnimation: [],
+      slideOutAnimation: [],
+      flyOutAnimation: [],
     };
   }
 
@@ -25,6 +31,8 @@ export class AnimationStateBuilder {
       isPlaying: state.isPlaying,
 
       slideInAnimation: [],
+      slideOutAnimation: [],
+      flyOutAnimation: [],
     };
   }
 
@@ -57,6 +65,13 @@ export class AnimationStateBuilder {
     switch (state.queue[0].type) {
       case SLIDE_TO_HAND:
         return AnimationStateBuilder.slideToHand(state, state.queue[0].payload);
+      case SLIDE_FROM_HAND:
+        return AnimationStateBuilder.slideFromHand(
+          state,
+          state.queue[0].payload
+        );
+      case FLY_OUT:
+        return AnimationStateBuilder.flyOut(state, state.queue[0].payload);
       default:
         return state;
     }
@@ -72,6 +87,10 @@ export class AnimationStateBuilder {
     const newState = AnimationStateBuilder.copy(state);
     newState.slideInAnimation =
       newArrays.slideInAnimation || newState.slideInAnimation;
+    newState.slideOutAnimation =
+      newArrays.slideOutAnimation || newState.slideOutAnimation;
+    newState.flyOutAnimation =
+      newArrays.flyOutAnimation || newState.flyOutAnimation;
     return newState;
   }
 
@@ -114,6 +133,87 @@ export class AnimationStateBuilder {
     );
     return AnimationStateBuilder.withNewAnimation(state, {
       slideInAnimation: newSlideInAnimation,
+    });
+  }
+
+  static slideFromHand(state: AnimationState, payload: any) {
+    const { keysToDelete, cards, removeSlideOutAnimation, callbacks } = payload;
+    if (!keysToDelete?.length) return state;
+    const cardKeys: string[] = cards.map((c: Card) => c.key);
+    const newSlideOutAnimation: SlideOutProps[] =
+      state.slideOutAnimation.concat(
+        keysToDelete.map((ckey: string, idx: number) => {
+          const handIdx = cardKeys.findIndex((k) => k === ckey);
+          return {
+            isFromHand: true,
+            isShrink: true,
+            handIdx,
+            noCardsInHand: cards.length,
+            delay: 0,
+            duration: 750, // adjust duration here
+            card: cards[handIdx],
+            callback:
+              idx < keysToDelete.length - 1
+                ? () => {
+                    removeSlideOutAnimation(ckey);
+                  }
+                : () => {
+                    removeSlideOutAnimation(ckey);
+                    callbacks.forEach((f: Function) => f()); // any additional callback after all animation
+                  },
+          } as SlideInProps;
+        })
+      );
+    return AnimationStateBuilder.withNewAnimation(state, {
+      slideOutAnimation: newSlideOutAnimation,
+    });
+  }
+
+  static removeSlideOutAnimation(state: AnimationState, key: string) {
+    const newSlideOutAnimation = state.slideOutAnimation.filter(
+      (s) => s.card.key !== key
+    );
+    return AnimationStateBuilder.withNewAnimation(state, {
+      slideOutAnimation: newSlideOutAnimation,
+    });
+  }
+
+  static flyOut(state: AnimationState, payload: any) {
+    const { locs, cardsToFly, removeFlyOutAnimation, callbacks } = payload;
+    if (!cardsToFly?.length) return state;
+
+    const newFlyOutAnimation: FlyOutProps[] = state.flyOutAnimation.concat(
+      cardsToFly.map((card: Card, idx: number) => {
+        return {
+          loc: locs[idx],
+          isShrink: true,
+          duration: 750,
+          delay: 0,
+          card,
+          callback:
+            idx < cardsToFly.length - 1
+              ? () => {
+                  removeFlyOutAnimation(card.key);
+                }
+              : () => {
+                  removeFlyOutAnimation(card.key);
+                  callbacks.forEach((f: Function) => f()); // any additional callback after all animation
+                },
+        } as FlyOutProps;
+      })
+    );
+    return AnimationStateBuilder.withNewAnimation(state, {
+      flyOutAnimation: newFlyOutAnimation,
+    });
+  }
+
+  static removeFlyOutAnimation(state: AnimationState, key: string) {
+    const newFlyOutAnimation = state.flyOutAnimation.filter(
+      (s) => s.card.key !== key
+    );
+
+    return AnimationStateBuilder.withNewAnimation(state, {
+      flyOutAnimation: newFlyOutAnimation,
     });
   }
 }

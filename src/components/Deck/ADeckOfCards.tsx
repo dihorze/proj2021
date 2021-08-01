@@ -73,6 +73,7 @@ export const ADeckOfCards: React.FC<ADeckOfCardsProps> = ({
               width={cWidth}
               height={cHeight}
               loc={Point.at(0, 0)}
+              hasHoverEffect
             />
           </div>
         ))}
