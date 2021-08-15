@@ -1,0 +1,21 @@
+{
+  "files": {
+    "main.css": "/proj2021/static/css/main.132e74ea.chunk.css",
+    "main.js": "/proj2021/static/js/main.5c27dc1e.chunk.js",
+    "main.js.map": "/proj2021/static/js/main.5c27dc1e.chunk.js.map",
+    "runtime-main.js": "/proj2021/static/js/runtime-main.4133352c.js",
+    "runtime-main.js.map": "/proj2021/static/js/runtime-main.4133352c.js.map",
+    "static/js/2.12454181.chunk.js": "/proj2021/static/js/2.12454181.chunk.js",
+    "static/js/2.12454181.chunk.js.map": "/proj2021/static/js/2.12454181.chunk.js.map",
+    "index.html": "/proj2021/index.html",
+    "static/css/main.132e74ea.chunk.css.map": "/proj2021/static/css/main.132e74ea.chunk.css.map",
+    "static/js/2.12454181.chunk.js.LICENSE.txt": "/proj2021/static/js/2.12454181.chunk.js.LICENSE.txt",
+    "static/media/index.css": "/proj2021/static/media/HelvetiHand.f60525bc.ttf"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.4133352c.js",
+    "static/js/2.12454181.chunk.js",
+    "static/css/main.132e74ea.chunk.css",
+    "static/js/main.5c27dc1e.chunk.js"
+  ]
+}
