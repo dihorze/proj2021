@@ -5,50 +5,30 @@ import { Point } from "../../model/positioning";
 import { cWidth, cHeight } from "../../data/Battlefield";
 import { CardStaticComponent } from "./Card";
 import { Card } from "../../model/classes";
-import { useScreenSize } from "../util/useScreenSize";
 
 interface useStyleProps {
   loc?: Point;
-  endLoc?: Point;
 
-  isShrink?: boolean;
   duration?: number;
 
   refLoc?: Point;
   width?: number;
   height?: number;
   isExiting?: boolean;
-  innerWidth?: number;
-  innerHeight?: number;
 }
 
 const getTransition = (props: useStyleProps) => {
-  return `offset-distance ${props.duration}ms ease-in, transform ${props.duration}ms ease-out, opacity ${props.duration}ms ease-in`;
+  return `transform ${props.duration}ms ease-out, opacity ${props.duration}ms ease-in`;
 };
 
 const getTransform = (props: useStyleProps) => {
-  const { isExiting, isShrink } = props;
+  const { isExiting } = props;
 
   if (!isExiting) {
     return "scale(1.3)";
   }
 
-  return isShrink ? "scale(0.01)" : "scale(1.3)";
-};
-
-const getOffsetPath = (props: useStyleProps) => {
-  const { width, height, loc, endLoc, innerWidth, innerHeight } = props;
-
-  const desLoc = endLoc || Point.at(innerWidth - 25, innerHeight - 25); // absolute
-  const baseTransform = Point.at(0, 0);
-  const desRelLoc = desLoc.subtract(loc);
-  const offset = Point.at(width / 2, height / 2);
-  const p1 = baseTransform.add(offset);
-  const p2 = desRelLoc.add(offset);
-  const cp1 = baseTransform.subtract(Point.at(0, innerHeight / 2)).add(offset);
-  const cp2 = Point.at(desRelLoc.x / 2, desRelLoc.y / 2).add(offset);
-
-  return `path('M ${p1.x} ${p1.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${p2.x} ${p2.y}')`;
+  return "scale(1.3) translateY(50px)";
 };
 
 const useStyles = makeStyles({
@@ -60,21 +40,15 @@ const useStyles = makeStyles({
     transformOrigin: "center",
     transition: getTransition,
     transform: getTransform,
-    offsetPath: getOffsetPath,
-    offsetDistance: ({ isExiting }: useStyleProps) =>
-      isExiting ? "100%" : "0%",
-    offsetRotate: "auto 90deg",
 
     backgroundImage: "url('./assets/papercard.png')",
     backgroundSize: "cover",
   },
 } as StyleRules);
 
-export interface FlyOutProps {
+export interface ShredProps {
   loc?: Point;
-  endLoc?: Point;
 
-  isShrink?: boolean;
   duration?: number;
   delay?: number;
 
@@ -84,11 +58,9 @@ export interface FlyOutProps {
   height?: number;
 }
 
-const FlyOut: React.FC<FlyOutProps> = ({
+const Shred: React.FC<ShredProps> = ({
   loc,
-  endLoc,
 
-  isShrink,
   duration,
   delay,
 
@@ -112,21 +84,15 @@ const FlyOut: React.FC<FlyOutProps> = ({
   const w = width ? width : cWidth;
   const h = height ? height : cHeight;
 
-  const [innerWidth, innerHeight] = useScreenSize();
-
   const classes = useStyles({
     loc: loc.subtract(Point.at(w / 2, h / 2)).add(Point.at(10, 0)),
-    endLoc,
 
     duration,
 
-    isShrink,
     isExiting,
 
     width: w,
     height: h,
-    innerWidth,
-    innerHeight,
   });
   // onTransitionEnd={() => callback()}
   return (
@@ -141,4 +107,4 @@ const FlyOut: React.FC<FlyOutProps> = ({
   );
 };
 
-export default React.memo(FlyOut, () => true);
+export default React.memo(Shred, () => true);

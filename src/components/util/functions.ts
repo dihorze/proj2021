@@ -18,3 +18,7 @@ export const shuffle = (arr: any[], inplace = false) => {
 
   return array;
 }
+
+export const sleep = (ms: number) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

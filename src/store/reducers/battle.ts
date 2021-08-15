@@ -12,11 +12,17 @@ import {
   DELETE_CARDS_FROM_DRAW_PILE,
   DELETE_CARDS_FROM_HAND,
   DELETE_ONE_CARDS,
+  DEQUEUE_ACTION_QUEUE,
+  ENQUEUE_ACTION_QUEUE,
+  INCREMENT_ROUND,
+  INCREMENT_SHUFFLE,
+  LOCK_CARD_TABLE,
   SELECT_CARD,
   SET_AIMING_CARD,
   SET_HOVERED_CARD,
   TOGGLE_DISCARD_PILE,
   TOGGLE_DRAW_PILE,
+  UNLOCK_CARD_TABLE,
   UNSELECT_CARD,
 } from "../actions/types";
 import {
@@ -64,6 +70,15 @@ const cardReducer = (state = CardTableStateBuilder.init(), action: any) => {
         action?.keys
       );
 
+    case LOCK_CARD_TABLE:
+      return CardTableStateBuilder.lockCardTable(state);
+    case UNLOCK_CARD_TABLE:
+      return CardTableStateBuilder.unlockCardTable(state);
+    case ENQUEUE_ACTION_QUEUE:
+      return CardTableStateBuilder.enqueueActionQueue(state, action?.action);
+    case DEQUEUE_ACTION_QUEUE:
+      return CardTableStateBuilder.dequeueActionQueue(state);
+
     default:
       return state;
   }
@@ -71,6 +86,10 @@ const cardReducer = (state = CardTableStateBuilder.init(), action: any) => {
 
 const battleReducer = (state = BattleStateBuilder.init(), action: any) => {
   switch (action.type) {
+    case INCREMENT_ROUND:
+      return BattleStateBuilder.startRound(state);
+    case INCREMENT_SHUFFLE:
+      return BattleStateBuilder.incrementShuffle(state);
     case TOGGLE_DRAW_PILE:
       return BattleStateBuilder.toggleDrawPile(state);
     case TOGGLE_DISCARD_PILE:

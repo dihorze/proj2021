@@ -3,19 +3,20 @@ import React from "react";
 import { withStyles } from "@material-ui/styles";
 import CardTable from "./CardTable";
 import { MouseContextProvider } from "../../../components/context/withMouseContext";
+import { ScreenContextProvider } from "../../../components/context/withScreenContext";
 import MultiProvider from "../../../components/context/MultiProvide";
 import { StyleRules } from "@material-ui/core";
 import Interaction from "./Interaction";
 import AimingArrow from "./AimingArrow";
 import BattleUI from "./BattleUI/BattleUI";
 import BattleAnimation from "./BattleAnimation/BattleAnimation";
-
+import { deckMaster } from "../../../data/deck";
 
 interface BattlefieldProps {
   classes: Record<string, string>;
 }
 
-const contextProviders = [MouseContextProvider];
+const contextProviders = [MouseContextProvider, ScreenContextProvider];
 
 const styles: StyleRules = {
   canvasContainer: {
@@ -26,8 +27,17 @@ const styles: StyleRules = {
 };
 
 class Battlefield extends React.Component<BattlefieldProps> {
+  componentDidMount() {
+    // preload card images
+    for (const cardKey in deckMaster) {
+      const img = new Image();
+      img.src = deckMaster[cardKey].uri;
+    }
+  }
+
   render() {
     const { classes } = this.props;
+
 
     return (
       <MultiProvider providers={contextProviders}>

@@ -12,7 +12,7 @@ const useStyles = makeStyles({
     right: 30,
     bottom: 24,
     transition: "transform 300ms ease-in",
-    zIndex: ({show}: any) => show ? 201 : "auto",
+    zIndex: ({show}: any) => show ? 201 : 200,
     "&:hover": {
       transform: "scale(1.15)",
     },

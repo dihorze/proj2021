@@ -3,13 +3,13 @@ import React from "react";
 import { connect } from "react-redux";
 import { withMouseContext } from "../../../components/context/withMouseContext";
 import { AttackArrow } from "../../../components/CurvedArrows/AttackArrow";
+import { useScreenSize } from "../../../components/util/useScreenSize";
 import {
   cWidth,
   degInterval,
   origin,
-  innerWidth,
-  activeZoneBottomLineY,
   cHeight,
+  getActiveZoneBottomLineY,
 } from "../../../data/Battlefield";
 import { CardTypes } from "../../../data/deck";
 import { Card } from "../../../model/classes";
@@ -34,6 +34,9 @@ const AimingArrow: React.FC<AimingArrowProps> = ({
 }) => {
   const classes = useStyles({});
 
+  
+  const [innerWidth, innerHeight] = useScreenSize();
+
   if (aimingCard === CardTypes.NONE)
     return aimingCard !== CardTypes.NONE && <div />;
 
@@ -43,7 +46,7 @@ const AimingArrow: React.FC<AimingArrowProps> = ({
   const rad_alpha = (alpha / 180) * Math.PI;
   const p = Point.at(
     (innerWidth - cWidth) / 2 + origin.y * Math.sin(rad_alpha) + cWidth / 2,
-    activeZoneBottomLineY + cHeight / 2
+    getActiveZoneBottomLineY(innerHeight) + cHeight / 2
   );
 
   return (

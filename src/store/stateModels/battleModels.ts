@@ -3,6 +3,9 @@ import { CardTypes } from "../../data/deck";
 import { Card } from "../../model/classes";
 
 interface CardTableState {
+  cardTableLock?: boolean;
+  actionQueue?: Function[];
+
   drawPileCards?: Array<Card>;
   discardPileCards?: Array<Card>;
   cards?: Array<Card>;
@@ -14,6 +17,9 @@ interface CardTableState {
 export class CardTableStateBuilder {
   static init(): CardTableState {
     return {
+      cardTableLock: false,
+      actionQueue: [],
+
       drawPileCards: [],
       discardPileCards: [],
       cards: [],
@@ -26,6 +32,9 @@ export class CardTableStateBuilder {
   // shadow copy
   static copy(state: CardTableState): CardTableState {
     return {
+      cardTableLock: state.cardTableLock,
+      actionQueue: state.actionQueue,
+
       drawPileCards: state.drawPileCards,
       discardPileCards: state.discardPileCards,
       cards: state.cards,
@@ -37,6 +46,8 @@ export class CardTableStateBuilder {
 
   static withNewArray(state: CardTableState, newArrays: CardTableState) {
     const newState = CardTableStateBuilder.copy(state);
+    newState.actionQueue = newArrays.actionQueue || newState.actionQueue;
+
     newState.cards = newArrays.cards || newState.cards;
     newState.drawPileCards = newArrays.drawPileCards || newState.drawPileCards;
     newState.discardPileCards =
@@ -152,8 +163,10 @@ export class CardTableStateBuilder {
     const newCards = state.drawPileCards.concat(
       shuffledCards.map((c) => c.copy())
     );
+    const shuffledNewCards = shuffle(newCards);
+
     return CardTableStateBuilder.withNewArray(state, {
-      drawPileCards: newCards,
+      drawPileCards: shuffledNewCards,
     });
   }
 
@@ -165,22 +178,6 @@ export class CardTableStateBuilder {
       drawPileCards: state.drawPileCards.filter((c) => !keys.includes(c.key)),
     });
     return newState;
-  }
-
-  static drawCards(state: CardTableState, quantity: number): CardTableState {
-    let n = state.drawPileCards.length;
-    const newDrawPileCards = [...state.drawPileCards];
-    const newCards = [...state.cards];
-    while (quantity--) {
-      const idx = Math.floor(Math.random() * n--);
-      newCards.push(newDrawPileCards[idx]);
-      newDrawPileCards.splice(idx, 1);
-    }
-
-    return CardTableStateBuilder.withNewArray(state, {
-      cards: newCards,
-      drawPileCards: newDrawPileCards,
-    });
   }
 
   // add to discard pile only, does not delete from hand
@@ -205,10 +202,40 @@ export class CardTableStateBuilder {
     });
     return newState;
   }
+
+  static lockCardTable(state: CardTableState): CardTableState {
+    const newState = CardTableStateBuilder.copy(state);
+    console.log("lock");
+    newState.cardTableLock = true;
+    return newState;
+  }
+
+  static unlockCardTable(state: CardTableState): CardTableState {
+    const newState = CardTableStateBuilder.copy(state);
+    console.log("unlock");
+    newState.cardTableLock = false;
+    return newState;
+  }
+
+  static enqueueActionQueue(
+    state: CardTableState,
+    action: Function
+  ): CardTableState {
+    return CardTableStateBuilder.withNewArray(state, {
+      actionQueue: state.actionQueue.concat(action),
+    });
+  }
+
+  static dequeueActionQueue(state: CardTableState): CardTableState {
+    return CardTableStateBuilder.withNewArray(state, {
+      actionQueue: state.actionQueue.slice(1),
+    });
+  }
 }
 
 interface BattleState {
   round: number;
+  noShuffles: number;
   showDrawPile: boolean;
   showDiscardPile: boolean;
 }
@@ -217,6 +244,7 @@ export class BattleStateBuilder {
   static init(): BattleState {
     return {
       round: 0,
+      noShuffles: 0,
       showDrawPile: false,
       showDiscardPile: false,
     };
@@ -226,6 +254,7 @@ export class BattleStateBuilder {
   static copy(state: BattleState): BattleState {
     return {
       round: state.round,
+      noShuffles: state.noShuffles,
       showDrawPile: state.showDrawPile,
       showDiscardPile: state.showDiscardPile,
     };
@@ -234,6 +263,12 @@ export class BattleStateBuilder {
   static startRound(state: BattleState): BattleState {
     const newState = BattleStateBuilder.copy(state);
     newState.round++;
+    return newState;
+  }
+
+  static incrementShuffle(state: BattleState): BattleState {
+    const newState = BattleStateBuilder.copy(state);
+    newState.noShuffles++;
     return newState;
   }
 
@@ -249,5 +284,3 @@ export class BattleStateBuilder {
     return newState;
   }
 }
-
-

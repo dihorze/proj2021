@@ -1,10 +1,9 @@
 import { SlideInProps } from "../../../components/Cards/SlideIn";
+import { SlideOutProps } from "../../../components/Cards/Slideout";
 import { Card } from "../../../model/classes";
 import { Point } from "../../../model/positioning";
 import {
   activateAimingCard,
-  addOneCard,
-  addManyCards,
   deleteAllCards,
   deleteOneCard,
   selectCard,
@@ -13,18 +12,18 @@ import {
   clearHoveredCard,
   startBattle,
   playACard,
-  drawCards
+  startTurn
 } from "../../../store/actions/battle";
+import { toggleCardSelectionPage } from "../../../store/actions/game";
 
 export interface CardTableProps {
   mousePos: Point;
+  screenSize: Array<number>;
   classes: Record<string, string>;
   cards: Array<Card>;
   selectedCard: string;
   aimingCard: string;
   hoveredCard: number;
-  addOneCard: (key: string) => void;
-  addManyCards: (keys: Array<string>) => void;
   deleteAllCards: () => void;
   deleteOneCard: (key: string) => void;
   selectCard: (key: string) => void;
@@ -33,9 +32,11 @@ export interface CardTableProps {
   clearHoveredCard: () => void;
   startBattle: () => void;
   playACard: (card: Card, loc: Point) => void;
-  drawCards: () => void;
+  startTurn: () => void;
+  toggleCardSelectionPage: () => void;
 
   slideInAnimation: SlideInProps[];
+  slideOutAnimation: SlideOutProps[];
 }
 
 export interface CardTableStates {
@@ -49,15 +50,14 @@ export const CardTableMapStateToProps = ({ battle, animation }) => {
     hoveredCard: battle.card.hoveredCard,
     selectedCard: battle.card.selectedCard,
     
-    slideInAnimation: animation.animation.slideInAnimation
+    slideInAnimation: animation.animation.slideInAnimation,
+    slideOutAnimation: animation.animation.slideOutAnimation
   };
 };
 
 
 export const cardTableActions = {
   activateAimingCard,
-  addOneCard,
-  addManyCards,
   deleteAllCards,
   deleteOneCard,
   selectCard,
@@ -66,7 +66,11 @@ export const cardTableActions = {
   clearHoveredCard,
   startBattle,
   playACard,
-  drawCards
+  startTurn,
+  toggleCardSelectionPage
 };
+
+
+
 
 

@@ -2,38 +2,27 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { Point } from "../../model/positioning";
-import { cWidth, cHeight } from "../../data/Battlefield";
+import { cWidth, cHeight, cWidthL, cHeightL } from "../../data/Battlefield";
 import { CardStaticComponent } from "./Card";
 import { Card } from "../../model/classes";
+import { getDistance } from "../../model/fomula";
 import { useScreenSize } from "../util/useScreenSize";
 
 interface useStyleProps {
   loc?: Point;
   endLoc?: Point;
-
-  isShrink?: boolean;
   duration?: number;
-
-  refLoc?: Point;
   width?: number;
   height?: number;
   isExiting?: boolean;
+  offsetRotate?: string;
+  isFading?: boolean;
   innerWidth?: number;
   innerHeight?: number;
 }
 
 const getTransition = (props: useStyleProps) => {
-  return `offset-distance ${props.duration}ms ease-in, transform ${props.duration}ms ease-out, opacity ${props.duration}ms ease-in`;
-};
-
-const getTransform = (props: useStyleProps) => {
-  const { isExiting, isShrink } = props;
-
-  if (!isExiting) {
-    return "scale(1.3)";
-  }
-
-  return isShrink ? "scale(0.01)" : "scale(1.3)";
+  return `offset-distance ${props.duration}ms ease-in-out, opacity ${props.duration}ms ease-in-out`;
 };
 
 const getOffsetPath = (props: useStyleProps) => {
@@ -42,39 +31,49 @@ const getOffsetPath = (props: useStyleProps) => {
   const desLoc = endLoc || Point.at(innerWidth - 25, innerHeight - 25); // absolute
   const baseTransform = Point.at(0, 0);
   const desRelLoc = desLoc.subtract(loc);
+
+  const dist = getDistance(desRelLoc, baseTransform);
+  const d1 = (Math.random() * dist) / 2,
+    d2 = (Math.random() * dist) / 2;
+  const t1 = Math.random() * 0.52 - 0.26,
+    t2 = Math.random() * 0.52 - 0.26;
+  const t = Math.atan2(desRelLoc.y, desRelLoc.x);
+
   const offset = Point.at(width / 2, height / 2);
   const p1 = baseTransform.add(offset);
   const p2 = desRelLoc.add(offset);
-  const cp1 = baseTransform.subtract(Point.at(0, innerHeight / 2)).add(offset);
-  const cp2 = Point.at(desRelLoc.x / 2, desRelLoc.y / 2).add(offset);
+  const cp1 = Point.at(d1 * Math.cos(t1 + t), d1 * Math.sin(t1 + t)).add(
+    offset
+  );
+  const cp2 = Point.at(d2 * Math.cos(t2 + t), d2 * Math.sin(t2 + t)).add(
+    offset
+  );
 
   return `path('M ${p1.x} ${p1.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${p2.x} ${p2.y}')`;
 };
 
 const useStyles = makeStyles({
   ctn: {
-    opacity: ({ isExiting }: useStyleProps) => (isExiting ? "0" : "1"),
+    opacity: ({ isFading, isExiting }: useStyleProps) =>
+      isFading && isExiting ? "0.2" : "1",
     position: "fixed",
     top: ({ loc }: useStyleProps) => loc.y,
     left: ({ loc }: useStyleProps) => loc.x,
     transformOrigin: "center",
     transition: getTransition,
-    transform: getTransform,
     offsetPath: getOffsetPath,
     offsetDistance: ({ isExiting }: useStyleProps) =>
       isExiting ? "100%" : "0%",
-    offsetRotate: "auto 90deg",
-
+    offsetRotate: ({ offsetRotate }: useStyleProps) => offsetRotate || "auto",
     backgroundImage: "url('./assets/papercard.png')",
     backgroundSize: "cover",
   },
 } as StyleRules);
 
-export interface FlyOutProps {
+interface FlyingCardProps {
   loc?: Point;
   endLoc?: Point;
 
-  isShrink?: boolean;
   duration?: number;
   delay?: number;
 
@@ -82,13 +81,14 @@ export interface FlyOutProps {
 
   width?: number;
   height?: number;
+  offsetRotate?: string;
+  isFading?: boolean;
 }
 
-const FlyOut: React.FC<FlyOutProps> = ({
+const FlyingCard: React.FC<FlyingCardProps> = ({
   loc,
   endLoc,
 
-  isShrink,
   duration,
   delay,
 
@@ -96,6 +96,8 @@ const FlyOut: React.FC<FlyOutProps> = ({
 
   width,
   height,
+  offsetRotate,
+  isFading,
 }) => {
   const [isExiting, setIsExiting] = useState(false);
 
@@ -109,8 +111,8 @@ const FlyOut: React.FC<FlyOutProps> = ({
     };
   }, [delay]);
 
-  const w = width ? width : cWidth;
-  const h = height ? height : cHeight;
+  const w = width || cWidth;
+  const h = height || cHeight;
 
   const [innerWidth, innerHeight] = useScreenSize();
 
@@ -120,11 +122,12 @@ const FlyOut: React.FC<FlyOutProps> = ({
 
     duration,
 
-    isShrink,
     isExiting,
 
     width: w,
     height: h,
+    offsetRotate,
+    isFading,
     innerWidth,
     innerHeight,
   });
@@ -141,4 +144,4 @@ const FlyOut: React.FC<FlyOutProps> = ({
   );
 };
 
-export default React.memo(FlyOut, () => true);
+export default React.memo(FlyingCard, () => true);

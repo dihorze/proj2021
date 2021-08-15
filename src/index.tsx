@@ -5,6 +5,7 @@ import "./index.css";
 
 import animationReducer from "./store/reducers/animation";
 import battleReducer from "./store/reducers/battle";
+import gameReducer from "./store/reducers/game";
 import playerReducer from "./store/reducers/player";
 import settingReducer from "./store/reducers/setting";
 
@@ -20,6 +21,7 @@ const composeEnhancers = compose;
 const rootReducer = combineReducers({
   animation: animationReducer,
   battle: battleReducer,
+  game: gameReducer,
   player: playerReducer,
   setting: settingReducer,
 });

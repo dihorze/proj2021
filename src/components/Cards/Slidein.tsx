@@ -5,28 +5,33 @@ import { Point } from "../../model/positioning";
 import { CardStaticComponent } from "./Card";
 import {
   cHeight,
-  cTop,
   cWidth,
   degInterval,
+  getCTop,
   origin,
   sinkCoefficient,
 } from "../../data/Battlefield";
 import { Card } from "../../model/classes";
-
-const innerHeight = window.innerHeight;
-const innerWidth = window.innerWidth;
+import { useScreenSize } from "../util/useScreenSize";
 
 export const slideInDuration = 100; // only thing matters in this file
 
 const getCardTopLoc = (props: useStyleProps) => {
-  const { isMounted, startLoc, endLoc, isToHand, handIdx, noCardsInHand } =
-    props;
+  const {
+    isMounted,
+    startLoc,
+    endLoc,
+    isToHand,
+    handIdx,
+    noCardsInHand,
+    innerHeight,
+  } = props;
   // if (!isMounted) return startLoc?.y || innerHeight - 150;
   if (isToHand) {
     const offset = handIdx - (noCardsInHand - 1) / 2;
     const alpha = offset * degInterval;
     const rad_alpha = (alpha / 180) * Math.PI;
-    return cTop + sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha));
+    return getCTop(innerHeight) + sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha));
   }
   return endLoc?.y || innerHeight - 150;
 };
@@ -40,6 +45,7 @@ const getCardLeftLoc = (props: useStyleProps) => {
     handIdx,
     noCardsInHand,
     width,
+    innerWidth,
   } = props;
   // if (!isMounted) return startLoc?.x || 50;
   if (isToHand) {
@@ -52,7 +58,8 @@ const getCardLeftLoc = (props: useStyleProps) => {
 };
 
 const getCardTransform = (props: useStyleProps) => {
-  const { isMounted, isToHand, isExpand, handIdx, noCardsInHand } = props;
+  const { isMounted, isToHand, isExpand, handIdx, noCardsInHand, innerWidth } =
+    props;
   if (isToHand) {
     if (!isMounted) {
       if (isExpand) return `scale(0.5) translate(-${innerWidth}px, 50%)`;
@@ -85,12 +92,10 @@ export interface SlideInProps {
   isExpand?: boolean;
   duration?: number;
   delay?: number;
-
+  callback?: Function;
   width?: number;
   height?: number;
   card?: Card;
-
-  callback: Function;
 }
 
 interface useStyleProps {
@@ -106,6 +111,8 @@ interface useStyleProps {
 
   width?: number;
   height?: number;
+  innerWidth?: number;
+  innerHeight?: number;
 }
 
 const SlideIn: React.FC<SlideInProps> = ({
@@ -123,7 +130,6 @@ const SlideIn: React.FC<SlideInProps> = ({
   delay,
 
   card,
-  callback,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -138,6 +144,8 @@ const SlideIn: React.FC<SlideInProps> = ({
     };
   }, [delay]);
 
+  const [innerWidth, innerHeight] = useScreenSize();
+
   const classes = useStyles({
     isMounted,
     children,
@@ -150,10 +158,12 @@ const SlideIn: React.FC<SlideInProps> = ({
     duration,
     width: width || cWidth,
     height,
+    innerWidth,
+    innerHeight,
   } as useStyleProps);
 
   return (
-    <div className={classes.animation} onTransitionEnd={() => callback()}>
+    <div className={classes.animation}>
       <CardStaticComponent
         loc={Point.at(0, 0)}
         width={width || cWidth}

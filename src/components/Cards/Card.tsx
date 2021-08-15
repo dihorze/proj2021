@@ -4,14 +4,20 @@ import { StyleRules } from "@material-ui/core";
 import { Point } from "../../model/positioning";
 import { Card } from "../../model/classes";
 import { SlideInProps } from "./SlideIn";
-import { cTop } from "../../data/Battlefield";
+import { cWidth, getCTop } from "../../data/Battlefield";
+import { useScreenSize } from "../util/useScreenSize";
+import { SlideOutProps } from "./Slideout";
 
-const innerWidth = window.innerWidth;
+import "../GlowingBorders/GlowingBorder.css";
 
 const getCardTransform = (props: StyleProps) => {
-  const { deg, offsetX, offsetY, isHovered, isSelected, isEntered } = props;
+  const { deg, offsetX, offsetY, isHovered, isSelected, isEntered, isExiting } =
+    props;
   if (!isEntered) {
     return `scale(0.3) rotate(${-deg}deg)`;
+  }
+  if (isExiting) {
+    return "scale(0.01) rotate(0.4turn)";
   }
   if (isSelected) return `scale(1.3)`;
   else if (isHovered) return `translateY(${-offsetY - 30}px) scale(1.3)`;
@@ -19,7 +25,23 @@ const getCardTransform = (props: StyleProps) => {
 };
 
 const getOffsetPath = (props: StyleProps) => {
-  const { loc, refLoc, width, height } = props;
+  if (props.isExiting) {
+    const { loc, refLoc, width, height, innerWidth } = props;
+
+    const baseTransform = Point.at(loc?.x - refLoc?.x, loc?.y - refLoc?.y);
+    const offset = Point.at(width / 2, height / 2);
+    const p1 = baseTransform.add(offset);
+    const p2 = Point.at(innerWidth / 2, 50).add(offset);
+    const cp1 = Point.at(
+      baseTransform.x,
+      -0.2 * baseTransform.x + baseTransform.y
+    ).add(offset);
+    const cp2 = Point.at(0, 0.1 * baseTransform.x - 50).add(offset);
+
+    return `path('M ${p2.x} ${p2.y} C ${cp2.x} ${cp2.y}, ${cp1.x} ${cp1.y}, ${p1.x} ${p1.y}')`;
+  }
+
+  const { loc, refLoc, width, height, innerWidth } = props;
   const baseTransform = Point.at(loc?.x - refLoc?.x, loc?.y - refLoc?.y);
   const offset = Point.at(width / 2, height / 2);
   const p1 = Point.at(-innerWidth / 2, 50).add(offset);
@@ -30,12 +52,20 @@ const getOffsetPath = (props: StyleProps) => {
   return `path('M ${p1.x} ${p1.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${p2.x} ${p2.y}')`;
 };
 
-const getTransformOrigin = (props: StyleProps) => {
-  return "center";
-};
-
 const getTransition = (props: StyleProps) => {
-  const { isSelected, isMoving, isHovered, isOnCards, isAiming } = props;
+  if (props.isExiting) {
+    return `offset-distance ${props.slideOutDuration}ms ease-in, transform ${props.slideOutDuration}ms ease-out, opacity ${props.slideOutDuration}ms ease-in`;
+  }
+
+  const {
+    isSelected,
+    isMoving,
+    isHovered,
+    isOnCards,
+    isAiming,
+    isEntered,
+    duration,
+  } = props;
 
   return (
     "all " +
@@ -49,7 +79,9 @@ const getTransition = (props: StyleProps) => {
       ? "100ms"
       : isOnCards
       ? "300ms"
-      : "400ms ease-out")
+      : isEntered
+      ? `${duration}ms ease-out`
+      : "100ms linear")
   );
 };
 
@@ -65,35 +97,32 @@ interface StyleProps {
   isHovered: boolean;
   isMoving: boolean;
   isEntered: boolean;
+  isExiting: boolean;
   isOnCards: boolean;
   isAiming: boolean;
-  entrance: boolean;
   refLoc: Point;
+  duration: number;
+  slideOutDuration: number;
+  innerWidth: number;
 }
 
 const useStyles = makeStyles({
   card: {
-    opacity: ({ isEntered }: any) => (isEntered ? "1" : "0"),
+    opacity: ({ isEntered, isExiting }: StyleProps) =>
+      isEntered && !isExiting ? "1" : "0",
     position: "fixed",
-    top: ({ refLoc }: { refLoc: Point }) => refLoc?.y,
-    left: ({ refLoc }: { refLoc: Point }) => refLoc?.x,
-    height: ({ height }: any) => height,
-    width: ({ width }: any) => width,
-    borderRadius: 2,
-    padding: 10,
-    fontSize: 24,
-    fontWeight: "bold",
+    top: ({ refLoc }: StyleProps) => refLoc?.y,
+    left: ({ refLoc }: StyleProps) => refLoc?.x,
     transition: getTransition,
-    transformOrigin: getTransformOrigin,
+    transformOrigin: "center",
     transform: getCardTransform,
 
     zIndex: ({ isHovered, isSelected }: any) =>
       isHovered || isSelected ? "100" : "auto",
-    backgroundImage: "url('./assets/papercard.png')",
-    backgroundSize: "cover",
 
     offsetPath: getOffsetPath,
-    offsetDistance: ({ isEntered }: any) => (isEntered ? "100%" : "0%"),
+    offsetDistance: ({ isEntered, isExiting }: any) =>
+      isEntered && !isExiting ? "100%" : "0%",
     offsetRotate: "0deg",
 
     // willChange: "transform"
@@ -103,10 +132,10 @@ const useStyles = makeStyles({
     borderRadius: 2,
     width: ({ width }: any) => width,
     height: ({ height }: any) => height,
-    padding: 10,
+    padding: 7,
     fontSize: 24,
     fontWeight: "bold",
-    backgroundImage: "url('./assets/papercard.png')",
+    backgroundImage: "url('./assets/card1.png')",
     backgroundSize: "cover",
     transition: "transform 0.1s",
     "&:hover": {
@@ -117,31 +146,11 @@ const useStyles = makeStyles({
     borderRadius: 2,
     width: ({ width }: any) => width,
     height: ({ height }: any) => height,
-    padding: 10,
+    padding: 7,
     fontSize: 24,
     fontWeight: "bold",
-    backgroundImage: "url('./assets/papercard.png')",
-    backgroundSize: "cover"
-  },
-  // card content
-  ctn: {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: "1.25vw",
-  },
-  text: {
-    fontSize: "0.9vw",
-  },
-  img: {
-    width: "100%",
-    borderRadius: "5px",
-    border: "1px solid #444",
+    backgroundImage: "url('./assets/card1.png')",
+    backgroundSize: "cover",
   },
 } as StyleRules);
 
@@ -153,7 +162,6 @@ interface CardProps {
   onMouseDown?: (e: React.MouseEvent) => void;
   onMouseUp?: (e: React.MouseEvent) => void;
   loc: Point;
-  duration?: number;
   width?: number;
   height?: number;
   deg?: number;
@@ -164,9 +172,9 @@ interface CardProps {
   isHovered?: boolean;
   isOnCards?: boolean;
   isAiming?: boolean;
-  entrance?: string;
   card?: Card;
   slideInProps?: SlideInProps;
+  slideOutProps?: SlideOutProps;
 }
 
 export const CardComponent: React.FC<CardProps> = ({
@@ -177,7 +185,6 @@ export const CardComponent: React.FC<CardProps> = ({
   onMouseDown,
   onMouseUp,
   loc,
-  duration,
   width,
   height,
   deg,
@@ -188,15 +195,18 @@ export const CardComponent: React.FC<CardProps> = ({
   isHovered,
   isOnCards,
   isAiming,
-  entrance,
   card,
 
   slideInProps,
+  slideOutProps,
 
   children,
 }) => {
   const [isEntered, setIsEntered] = useState(false); // for entrance animation
+  const [isExiting, setIsExiting] = useState(false); // for exit animation
   const [isMoving, setIsMoving] = useState(false);
+
+  const duration = slideInProps?.duration || 400;
 
   useEffect(() => {
     let tid1: NodeJS.Timeout, tid2: NodeJS.Timeout, tid3: NodeJS.Timeout;
@@ -204,19 +214,24 @@ export const CardComponent: React.FC<CardProps> = ({
     if (slideInProps)
       tid1 = setTimeout(() => {
         setIsEntered(true);
-        slideInProps.callback();
       }, slideInProps.delay);
 
-    if (isSelected) tid3 = setTimeout(() => setIsMoving(true), 100);
+    if (slideOutProps)
+      tid2 = setTimeout(() => {
+        setIsExiting(true);
+      }, slideOutProps.delay);
+    else if (isSelected) tid3 = setTimeout(() => setIsMoving(true), 50);
     else setIsMoving(false);
     return () => {
       clearTimeout(tid1);
       clearTimeout(tid2);
       clearTimeout(tid3);
     };
-  }, [duration, isSelected, slideInProps]);
+  }, [isSelected, slideInProps, slideOutProps]);
 
-  const refLoc = Point.at((innerWidth - width) / 2, cTop);
+  const [innerWidth, innerHeight] = useScreenSize();
+
+  const refLoc = Point.at((innerWidth - width) / 2, getCTop(innerHeight));
 
   const classes = useStyles({
     loc,
@@ -230,15 +245,18 @@ export const CardComponent: React.FC<CardProps> = ({
     isHovered,
     isMoving,
     isEntered,
+    isExiting,
     isOnCards,
     isAiming,
-    entrance,
     refLoc,
+    duration,
+    slideOutDuration: slideOutProps?.duration,
+    innerWidth,
   });
 
   return (
     <div
-      className={classes.card}
+      className={classes.card + " glow-ctn"}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseMove={onMouseMove}
@@ -246,7 +264,16 @@ export const CardComponent: React.FC<CardProps> = ({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
     >
-      {card ? <CardContent card={card} /> : children}
+      {card ? (
+        <CardStaticComponent
+          loc={Point.at(0, 0)}
+          width={width}
+          height={height}
+          card={card}
+        />
+      ) : (
+        children
+      )}
     </div>
   );
 };
@@ -279,8 +306,10 @@ export const CardStaticComponent: React.FC<CardStaticProps> = ({
   children,
 }) => {
   const classes = useStyles({ width, height });
-  const className = hasHoverEffect ? classes.cardStatic : classes.cardStaticNoHover;
-  
+  const className = hasHoverEffect
+    ? classes.cardStatic
+    : classes.cardStaticNoHover;
+
   return (
     <div
       className={className}
@@ -291,28 +320,81 @@ export const CardStaticComponent: React.FC<CardStaticProps> = ({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
     >
-      {card ? <CardContent card={card} /> : children}
+      {card ? <CardContent card={card} width={width} /> : children}
     </div>
   );
 };
 
 interface CardContentProps {
   card: Card;
+  width: number;
 }
 
-const CardContent: React.FC<CardContentProps> = ({ card }) => {
-  const classes = useStyles({});
+const getTitleFontSize = (props) => {
+  const { title, width } = props;
+  const n = title.length;
+  return `${Math.min((width / n) * 0.9, (9 * width) / cWidth)}pt`;
+};
+
+const getTextFontSize = (props) => {
+  const { description, width } = props;
+  const n = description.length;
+  return `${Math.min((4.1 * width) / n, (8 * width) / cWidth)}pt`;
+};
+
+const useStylesCardContent = makeStyles({
+  // card content
+  ctn: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  title: {
+    fontSize: getTitleFontSize,
+    width: "80%",
+    height: "11.5%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  img: {
+    width: "85%",
+    margin: "12% 0 9% 0",
+    borderRadius: "1px",
+    border: "1px solid #333",
+  },
+  text: {
+    fontSize: getTextFontSize,
+    padding: "5px",
+    width: "91%",
+    margin: "0 5%",
+  },
+});
+
+const CardContent: React.FC<CardContentProps> = ({ card, width }) => {
+  const title = card.getTitle(),
+    description = card.getDiscription();
+
+  const classes = useStylesCardContent({
+    title,
+    description,
+    width,
+  });
 
   return (
     <div className={classes.ctn}>
-      <div className={classes.title}>{card.getTitle()}</div>
-      <div className={classes.text}>{card.getDiscription()}</div>
+      <div className={classes.title}>{title}</div>
+
       <img
         src={card.getUri()}
-        alt={card.getTitle()}
+        alt={title}
         className={classes.img}
         draggable={false}
       />
+      <div className={classes.text}>{card.getDiscription()}</div>
     </div>
   );
 };

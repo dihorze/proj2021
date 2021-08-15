@@ -11,6 +11,9 @@ import {
   REMOVE_SLIDE_IN_ANIMATION,
   REMOVE_SLIDE_OUT_ANIMATION,
   REMOVE_FLY_OUT_ANIMATION,
+  REMOVE_SHUFFLE_DISCARD_TO_DRAW_ANIMATION,
+  PLAY_ANIMATION,
+  REMOVE_SHRED_ANIMATION,
 } from "./types";
 
 export const queueAnimation = (animation: Anim) => {
@@ -46,42 +49,44 @@ export const dequeueAnimation = () => {
 
 export const PlayAnimation = (
   animation: Anim
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
-  return (dispatch, getState) => {
-    const isRunning = getState().animation.animation.isPlaying;
-
-    const callback = () => {
-      dispatch(finishPlayingAnimation());
-      dispatch(dequeueAnimation());
-      dispatch(runNextAnimation());
-    };
-    animation.payload.callbacks.push(callback);
-
-    dispatch(startPlayingAnimation());
-    dispatch(queueAnimation(animation));
-    if (!isRunning) dispatch(runNextAnimation());
-    // to-do: supplement callback to run next animation
-    
+) => {
+  return {
+    type: PLAY_ANIMATION,
+    animation
   }
-};
+}
+
 
 export const removeSlideInAnimation = (key: string) => {
   return {
     type: REMOVE_SLIDE_IN_ANIMATION,
-    key
-  }
-}
+    key,
+  };
+};
 
 export const removeSlideOutAnimation = (key: string) => {
   return {
     type: REMOVE_SLIDE_OUT_ANIMATION,
-    key
+    key,
+  };
+};
+
+export const removeShredAnimation = (key: string) => {
+  return {
+    type: REMOVE_SHRED_ANIMATION,
+    key,
   }
 }
 
 export const removeFlyOutAnimation = (key: string) => {
   return {
     type: REMOVE_FLY_OUT_ANIMATION,
-    key
-  }
-}
+    key,
+  };
+};
+
+export const removeShuffleDiscardToDrawAnimation = () => {
+  return {
+    type: REMOVE_SHUFFLE_DISCARD_TO_DRAW_ANIMATION,
+  };
+};

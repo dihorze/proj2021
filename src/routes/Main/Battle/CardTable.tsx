@@ -1,26 +1,24 @@
 import React, { Component } from "react";
 import { Button1 } from "../../../components/Buttons/Buttons";
 import { CardComponent } from "../../../components/Cards/Card";
-import FadeoutCard from "../../../components/Cards/Fadeout";
 import { withMouseContext } from "../../../components/context/withMouseContext";
 import {
-  activeZoneBottomLineY,
   cardShiftMagnitude,
   cardShiftSigma,
   cHeight,
-  cTop,
   cWidth,
   degInterval,
+  getActiveZoneBottomLineY,
   getCardPos,
+  getCTop,
   origin,
-  innerWidth,
   sinkCoefficient,
 } from "../../../data/Battlefield";
-import { inverse, norm } from "../../../model/fomula";
+import { norm } from "../../../model/fomula";
 import { Point } from "../../../model/positioning";
 import { withStyles } from "@material-ui/core";
 import { styles } from "./styles";
-import { CardTypes, getCardType, getRandomCard } from "../../../data/deck";
+import { CardTypes } from "../../../data/deck";
 import { connect } from "react-redux";
 import {
   CardTableProps,
@@ -29,12 +27,9 @@ import {
   CardTableMapStateToProps,
 } from "./CardTableProps";
 import { Card } from "../../../model/classes";
+import { withScreenContext } from "../../../components/context/withScreenContext";
 
 export class CardTable extends Component<CardTableProps, CardTableStates> {
-  state = {
-
-  };
-
   shouldComponentUpdate(nextProps: CardTableProps, nextState: CardTableStates) {
     if (
       this.state === nextState &&
@@ -43,22 +38,13 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
       this.props.hoveredCard === nextProps.hoveredCard &&
       this.props.aimingCard === nextProps.aimingCard &&
       this.props.cards === nextProps.cards &&
-      this.props.slideInAnimation === nextProps.slideInAnimation
+      this.props.slideInAnimation === nextProps.slideInAnimation &&
+      this.props.slideOutAnimation === nextProps.slideOutAnimation &&
+      this.props.screenSize === nextProps.screenSize
     )
       return false;
     return true;
   }
-
-  addOne = () => {
-    const id = getRandomCard();
-    this.props.addOneCard(id);
-  };
-
-  addMany = () => {
-    const noToAdd = 5;
-    const cards = new Array(noToAdd).fill(0).map(() => getRandomCard());
-    this.props.addManyCards(cards);
-  };
 
   cardEnter = (idx: number) => () => {
     if (
@@ -83,7 +69,11 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
   leaveTable = () => {};
 
   cardMouseUp = (event: React.MouseEvent) => {
-    if (event.button === 0 && this.props.mousePos.y < activeZoneBottomLineY) {
+    if (
+      event.button === 0 &&
+      this.props.selectedCard !== CardTypes.NONE &&
+      this.props.mousePos.y < getActiveZoneBottomLineY(this.props.screenSize[1]) // innerHeight
+    ) {
       this.props.playACard(
         Card.getCardFromKey(this.props.selectedCard),
         this.props.mousePos
@@ -94,7 +84,11 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
   cardMouseDown = (key: string) => (event: React.MouseEvent) => {
     if (this.props.aimingCard === CardTypes.NONE)
       if (event.button === 0) {
-        this.props.selectCard(key);
+        if (
+          this.props.mousePos.y >=
+          getActiveZoneBottomLineY(this.props.screenSize[1])
+        )
+          this.props.selectCard(key);
       } else {
         event.preventDefault();
         this.props.unselectCard();
@@ -107,20 +101,17 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
     const { classes } = this.props;
 
     const slideInAnimKeys = this.props.slideInAnimation.map((a) => a.card.key);
+    const slideOutAnimKeys = this.props.slideOutAnimation.map(
+      (a) => a.card.key
+    );
 
     return (
       <>
         <Button1
           btnStyle={{ position: "fixed", top: 300, left: 300, width: 150 }}
-          onClick={this.addOne}
+          onClick={this.props.toggleCardSelectionPage}
         >
-          Add a Card
-        </Button1>
-        <Button1
-          btnStyle={{ position: "fixed", top: 300, left: 500, width: 150 }}
-          onClick={this.addMany}
-        >
-          Add Many
+          Choose A Card
         </Button1>
         <Button1
           btnStyle={{ position: "fixed", top: 300, left: 700, width: 150 }}
@@ -130,7 +121,7 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
         </Button1>
         <Button1
           btnStyle={{ position: "fixed", top: 300, left: 900, width: 150 }}
-          onClick={() => this.props.drawCards()}
+          onClick={this.props.startTurn}
         >
           Start Turn
         </Button1>
@@ -159,6 +150,13 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
                   ]
                 : null
             }
+            slideOutProps={
+              slideOutAnimKeys.includes(key)
+                ? this.props.slideOutAnimation[
+                    slideOutAnimKeys.findIndex((k) => k === key)
+                  ]
+                : null
+            }
             onMouseEnter={this.cardEnter(idx)}
             onMouseMove={this.cardMove(idx)}
             onMouseLeave={this.cardLeave}
@@ -175,14 +173,16 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
 
 const styledCardTable = withStyles(styles)(CardTable);
 const mouseContextCardTable = withMouseContext(styledCardTable);
+const screenContextCardTable = withScreenContext(mouseContextCardTable);
 
 export default connect(
   CardTableMapStateToProps,
   cardTableActions
-)(mouseContextCardTable);
+)(screenContextCardTable);
 
-const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
-  props.cards.map((card, idx) => {
+const getCardLocs = (state: CardTableStates, props: CardTableProps) => {
+  const [innerWidth, innerHeight] = props.screenSize;
+  return props.cards.map((card, idx) => {
     const key = card.key;
     if (props.selectedCard === key) {
       return {
@@ -202,7 +202,8 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
 
     const p = Point.at(
       (innerWidth - cWidth) / 2 + origin.y * Math.sin(rad_alpha),
-      cTop + sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha))
+      getCTop(innerHeight) +
+        sinkCoefficient * origin.y * (1 - Math.cos(rad_alpha))
     );
 
     const targetCardIndex =
@@ -221,7 +222,7 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
 
     if (props.aimingCard === key) {
       return {
-        loc: Point.at(p.x, activeZoneBottomLineY),
+        loc: Point.at(p.x, getActiveZoneBottomLineY(innerHeight)),
         o: Point.at(cWidth / 2, cHeight / 2),
         deg: 0,
         key,
@@ -247,3 +248,4 @@ const getCardLocs = (state: CardTableStates, props: CardTableProps) =>
       card,
     };
   });
+};

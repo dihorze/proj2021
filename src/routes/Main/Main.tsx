@@ -8,12 +8,19 @@ import { ADeckOfCards } from "../../components/Deck/ADeckOfCards";
 import { connect } from "react-redux";
 import { Card } from "../../model/classes";
 import { toggleDeckOfCards } from "../../store/actions/setting";
+import { CardSelectionPage } from "../../components/Deck/CardSelectionPage";
+import { toggleCardSelectionPage } from "../../store/actions/game";
+import { addNewCardsOutsideDeck } from "../../store/actions/battle";
+import { Point } from "../../model/positioning";
 
 interface MainProps {
   classes: Record<string, string>;
   showDeck: boolean;
   deck: Array<Card>;
+  showCardSelectionPage: boolean;
   toggleDeckOfCards: () => void;
+  toggleCardSelectionPage: () => void;
+  addNewCardsOutsideDeck: (cards: Card[], locs: Point[]) => void;
 }
 
 const styles: StyleRules = {};
@@ -31,6 +38,17 @@ class Main extends React.Component<MainProps> {
           cards={this.props.deck}
           onContextMenu={this.props.toggleDeckOfCards}
         />
+        <CardSelectionPage
+          show={this.props.showCardSelectionPage}
+          onContextMenu={this.props.toggleCardSelectionPage}
+          onClick={(card: Card) => (event: React.MouseEvent) => {
+            this.props.toggleCardSelectionPage();
+            this.props.addNewCardsOutsideDeck(
+              [card],
+              [Point.at(window.innerWidth / 2, window.innerHeight / 2)]
+            );
+          }}
+        />
       </>
     );
   }
@@ -38,11 +56,17 @@ class Main extends React.Component<MainProps> {
 
 const StyledMain = withStyles(styles)(Main);
 
-const mapStateToProps = ({ setting, player }) => {
+const mapStateToProps = ({ setting, player, game }) => {
   return {
     showDeck: setting.setting.showDeck,
     deck: player.player.deck,
+
+    showCardSelectionPage: game.game.showCardSelectionPage,
   };
 };
 
-export default connect(mapStateToProps, { toggleDeckOfCards })(StyledMain);
+export default connect(mapStateToProps, {
+  toggleDeckOfCards,
+  toggleCardSelectionPage,
+  addNewCardsOutsideDeck,
+})(StyledMain);

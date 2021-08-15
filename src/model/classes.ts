@@ -66,6 +66,7 @@ export interface Anim {
 }
 
 interface Payload {
+  callfronts?: Function[];
   callbacks?: Function[];
   [key: string]: any;
 }

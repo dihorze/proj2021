@@ -2,6 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { StyleRules } from '@material-ui/core';
 import "./Buttons.css";
+import { GlowingBorder } from '../GlowingBorders/GlowingBorder';
 
 const useStyles = makeStyles({
   btn: {

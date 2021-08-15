@@ -1,0 +1,14 @@
+.glow-ctn {
+  box-shadow:inset 0 0 5px #afd0eb, 0 0 8px #d8e2eb;
+  animation-name: glow;
+  animation-duration: 0.8s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes glow {
+  50% {
+    box-shadow:inset 0 0 5px #afd0eb, 0 0 10px #9ecaed;
+  }
+}
