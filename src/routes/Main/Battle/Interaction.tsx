@@ -47,7 +47,7 @@ class Interaction extends Component<InteractionProps> {
 
   handleMouseMove = (e: MouseEvent) => {
     if (
-      getCardType(this.props.selectedCard) === CardTypes.ATTACK &&
+      Card.getCardFromKey(this.props.selectedCard)?.getIsAiming() &&
       e.clientY < getActiveAttackZoneBottomLineY(this.props.screenSize[1])
     ) {
       this.props.setAimingCard(this.props.selectedCard);
@@ -79,7 +79,7 @@ class Interaction extends Component<InteractionProps> {
         return this.props.unselectCard();
 
       if (
-        getCardType(cardKey) === CardTypes.ATTACK &&
+        this.props.cards[idx].getIsAiming() &&
         this.props.mousePos.y <
           getActiveAttackZoneBottomLineY(this.props.screenSize[1])
       ) {
@@ -96,6 +96,8 @@ class Interaction extends Component<InteractionProps> {
         return this.props.endTurn();
       case "s":
         return this.props.startTurn();
+      case "Escape":
+        return this.props.unselectCard();
 
       default:
         return;

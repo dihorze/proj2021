@@ -13,8 +13,6 @@ import {
 } from "./animationTypes";
 
 interface AnimationState {
-  queue?: Anim[];
-  isPlaying?: boolean;
 
   slideInAnimation?: SlideInProps[];
   slideOutAnimation?: SlideOutProps[];
@@ -26,8 +24,6 @@ interface AnimationState {
 export class AnimationStateBuilder {
   static init(): AnimationState {
     return {
-      queue: [],
-      isPlaying: false,
 
       slideInAnimation: [],
       slideOutAnimation: [],
@@ -39,8 +35,6 @@ export class AnimationStateBuilder {
 
   static copy(state: AnimationState): AnimationState {
     return {
-      queue: state.queue,
-      isPlaying: state.isPlaying,
 
       slideInAnimation: state.slideInAnimation,
       slideOutAnimation: state.slideOutAnimation,
@@ -48,60 +42,6 @@ export class AnimationStateBuilder {
       shredAnimation: state.shredAnimation,
       shuffleDiscardToDrawAnimation: state.shuffleDiscardToDrawAnimation,
     };
-  }
-
-  static withNewArray(state: AnimationState, newArrays: AnimationState) {
-    const newState = AnimationStateBuilder.copy(state);
-    newState.queue = newArrays.queue || newState.queue;
-    return newState;
-  }
-
-  static queueAnimation(state: AnimationState, animation: Anim) {
-    return AnimationStateBuilder.withNewArray(state, {
-      queue: state.queue.concat(animation),
-    });
-  }
-
-  static startPlayingAnimation(state: AnimationState) {
-    const newState = AnimationStateBuilder.copy(state);
-    newState.isPlaying = true;
-    return newState;
-  }
-
-  static finishPlayingAnimation(state: AnimationState) {
-    const newState = AnimationStateBuilder.copy(state);
-    newState.isPlaying = false;
-    return newState;
-  }
-
-  static runNextAnimation(state: AnimationState) {
-    if (state.queue.length <= 0) return state;
-    // do necessary preprocessing
-    switch (state.queue[0].type) {
-      case SLIDE_TO_HAND:
-        return AnimationStateBuilder.slideToHand(state, state.queue[0].payload);
-      case SLIDE_FROM_HAND:
-        return AnimationStateBuilder.slideFromHand(
-          state,
-          state.queue[0].payload
-        );
-      case FLY_OUT:
-        return AnimationStateBuilder.flyOut(state, state.queue[0].payload);
-      case SHUFFLE_DISCARD_TO_DRAW:
-        return AnimationStateBuilder.shuffleDiscardToDraw(
-          state,
-          state.queue[0].payload
-        );
-
-      default:
-        return state;
-    }
-  }
-
-  static dequeueAnimation(state: AnimationState) {
-    return AnimationStateBuilder.withNewArray(state, {
-      queue: state.queue.slice(1), // dequeue buy array slicing, not splicing!
-    });
   }
 
   static playAnimation(state: AnimationState, anim: Anim) {

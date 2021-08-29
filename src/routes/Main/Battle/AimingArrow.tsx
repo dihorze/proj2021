@@ -34,11 +34,12 @@ const AimingArrow: React.FC<AimingArrowProps> = ({
 }) => {
   const classes = useStyles({});
 
+  const card = Card.getCardFromKey(aimingCard);
   
   const [innerWidth, innerHeight] = useScreenSize();
 
-  if (aimingCard === CardTypes.NONE)
-    return aimingCard !== CardTypes.NONE && <div />;
+  if (!card?.getIsAiming())
+    return !card?.getIsAiming() && <div />;
 
   const index = cards.findIndex((c) => c.key === aimingCard);
   const offset = index - (cards.length - 1) / 2;

@@ -115,58 +115,87 @@ export const clearHoveredCard = () => {
 
 // Battle Procedures
 
-export const addCardsToHand = (cards: Array<Card>) => {
-  return {
-    type: ADD_CARDS_TO_HAND,
-    cards,
-  };
+export const addCardsToHand = (
+  cards: Array<Card>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: ADD_CARDS_TO_HAND,
+        cards,
+      });
+    });
 };
 
-export const deleteCardsFromHand = (keys: Array<string>) => {
-  return {
-    type: DELETE_CARDS_FROM_HAND,
-    keys,
-  };
+export const deleteCardsFromHand = (
+  keys: Array<string>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: DELETE_CARDS_FROM_HAND,
+        keys,
+      });
+    });
 };
 
-export const addCardsToDrawPile = (cards: Array<Card>) => {
-  return {
-    type: ADD_CARDS_TO_DRAW_PILE,
-    cards,
-  };
+export const addCardsToDrawPile = (
+  cards: Array<Card>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: ADD_CARDS_TO_DRAW_PILE,
+        cards,
+      });
+    });
 };
 
-export const deleteCardsFromDrawPile = (keys: Array<string>) => {
-  return {
-    type: DELETE_CARDS_FROM_DRAW_PILE,
-    keys,
-  };
+export const deleteCardsFromDrawPile = (
+  keys: Array<string>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: DELETE_CARDS_FROM_DRAW_PILE,
+        keys,
+      });
+    });
 };
 
-export const addCardsToDiscardPile = (cards: Array<Card>) => {
-  return {
-    type: ADD_CARDS_TO_DISCARD_PILE,
-    cards,
-  };
+export const addCardsToDiscardPile = (
+  cards: Array<Card>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: ADD_CARDS_TO_DISCARD_PILE,
+        cards,
+      });
+    });
 };
 
-export const deleteCardsFromDiscardPile = (keys: Array<string>) => {
-  return {
-    type: DELETE_CARDS_FROM_DISCARD_PILE,
-    keys,
-  };
+export const deleteCardsFromDiscardPile = (
+  keys: Array<string>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: DELETE_CARDS_FROM_DISCARD_PILE,
+        keys,
+      });
+    });
 };
 
 export const addCardsToHandAnimated = (
   cardsToAdd: Array<Card>,
-  unlockCallback: Function = null,
   delay = 100,
   duration = 400
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
   return async (dispatch, getState) => {
     const cards = [...getState().battle.card.cards];
 
-    dispatch(addCardsToHand(cardsToAdd));
+    await dispatch(addCardsToHand(cardsToAdd));
     // slide in animation
     const slideInAnim: Anim = {
       type: SLIDE_TO_HAND,
@@ -177,19 +206,16 @@ export const addCardsToHandAnimated = (
         delay,
       },
     };
-    dispatch(PlayAnimation(slideInAnim));
-    await sleep(delay * cardsToAdd.length + duration);
+    await dispatch(PlayAnimation(slideInAnim, delay * cardsToAdd.length + duration));
     cardsToAdd.forEach((card) => dispatch(removeSlideInAnimation(card.key)));
-    if (unlockCallback) unlockCallback();
   };
 };
 
 export const deleteCardsFromHandAnimated = (
   keysToDelete: Array<string>,
-  callback: Function,
   delay = 0,
   duration = 750
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
   return async (dispatch, getState) => {
     const cards = [...getState().battle.card.cards];
     const slideOutAnim: Anim = {
@@ -201,20 +227,16 @@ export const deleteCardsFromHandAnimated = (
         duration,
       },
     };
-    dispatch(PlayAnimation(slideOutAnim));
-
-    await sleep(delay + duration);
+    await dispatch(PlayAnimation(slideOutAnim, delay + duration));
     keysToDelete.forEach((key) => dispatch(removeSlideOutAnimation(key)));
-    dispatch(deleteCardsFromHand(keysToDelete));
-    callback();
+    await dispatch(deleteCardsFromHand(keysToDelete));
   };
 };
 
 export const drawCards = (
-  quantity = -1,
-  unlockCallback: Function
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
-  return (dispatch, getState) => {
+  quantity = -1
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return async (dispatch, getState) => {
     // need to acquire lock
     const { battle, player } = getState();
     const newDrawPileCards = [...battle.card.drawPileCards];
@@ -226,7 +248,6 @@ export const drawCards = (
 
     // end recursion if no cards in both piles
     if (n <= 0 && battle.card.discardPileCards.length <= 0) {
-      unlockCallback();
       return;
     }
     const newCards = [];
@@ -246,27 +267,19 @@ export const drawCards = (
         n -= maxHand - nHand;
       }
 
-      dispatch(deleteCardsFromDrawPile(newCards.map((c) => c.key)));
+      await dispatch(deleteCardsFromDrawPile(newCards.map((c) => c.key)));
 
       if (quantity > 0 && nHand < maxHand) {
-        dispatch(addCardsToHandAnimated(newCards));
+        dispatch(addCardsToHandAnimated(newCards)); // simultaneously with shuffle discard to draw
         if (battle.card.discardPileCards.length > 0)
-          dispatch(
-            shuffleDiscardToDraw(() =>
-              dispatch(drawCards(quantity, unlockCallback))
-            )
-          );
-        else unlockCallback();
-      } else dispatch(addCardsToHandAnimated(newCards, unlockCallback));
+          await dispatch(shuffleDiscardToDraw());
+        await dispatch(drawCards(quantity));
+      } else await dispatch(addCardsToHandAnimated(newCards));
     } else {
       if (quantity > 0 && nHand < maxHand) {
         if (battle.card.discardPileCards.length > 0)
-          dispatch(
-            shuffleDiscardToDraw(() =>
-              dispatch(drawCards(quantity, unlockCallback))
-            )
-          );
-        else unlockCallback();
+          await dispatch(shuffleDiscardToDraw());
+        await dispatch(drawCards(quantity));
       }
     }
   };
@@ -276,7 +289,7 @@ export const drawCardsWithLock = (
   quantity = -1
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch, getState) => {
-    dispatch(tryLockCardTable((cb: Function) => drawCards(quantity, cb)));
+    dispatch(tryLockCardTable(() => drawCards(quantity)));
   };
 };
 
@@ -286,25 +299,24 @@ export const startBattle = (): ThunkAction<
   unknown,
   AnyAction
 > => {
-  return (dispatch, getState) => {
+  return async (dispatch, getState) => {
     // need to acquire lock
     const { player } = getState();
-    dispatch(addCardsToDrawPile(player.player.deck));
+    await dispatch(addCardsToDrawPile(player.player.deck));
     dispatch(startTurn());
   };
 };
 
 export const shuffleDiscardToDraw = (
-  callback: Function,
   duration = 1000,
   delay = 250
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
   return async (dispatch, getState) => {
     const { battle } = getState();
     const cards = shuffle([...battle.card.discardPileCards]);
 
     dispatch(incrementShuffle());
-    dispatch(deleteCardsFromDiscardPile(cards.map((c) => c.key)));
+    await dispatch(deleteCardsFromDiscardPile(cards.map((c) => c.key)));
 
     const sdtd: Anim = {
       type: SHUFFLE_DISCARD_TO_DRAW,
@@ -314,12 +326,9 @@ export const shuffleDiscardToDraw = (
         noCards: cards.length,
       },
     };
-    dispatch(PlayAnimation(sdtd));
-    await sleep(delay + duration);
-
+    await dispatch(PlayAnimation(sdtd, delay + duration));
     dispatch(removeShuffleDiscardToDrawAnimation());
-    dispatch(addCardsToDrawPile(cards));
-    callback();
+    await dispatch(addCardsToDrawPile(cards));
   };
 };
 
@@ -328,27 +337,20 @@ export const discardCardsWithLock = (
   cards: Card[] = []
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch) => {
-    dispatch(
-      tryLockCardTable((cb: Function) => discardCards(isDiscardAll, cards, cb))
-    );
+    dispatch(tryLockCardTable(() => discardCards(isDiscardAll, cards)));
   };
 };
 
 export const discardCards = (
   isDiscardAll: boolean = true,
-  cards: Card[] = [],
-  unlockCallback: Function
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
-  return (dispatch, getState) => {
+  cards: Card[] = []
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return async (dispatch, getState) => {
     const cardsToDiscard = isDiscardAll ? getState().battle.card.cards : cards;
     const keys = cardsToDiscard.map((c: Card) => c.key);
-    if (keys.length === 0) return unlockCallback();
-    dispatch(
-      deleteCardsFromHandAnimated(keys, () => {
-        dispatch(addCardsToDiscardPile([...cardsToDiscard]));
-        unlockCallback();
-      })
-    );
+    if (keys.length === 0) return;
+    await dispatch(deleteCardsFromHandAnimated(keys));
+    await dispatch(addCardsToDiscardPile([...cardsToDiscard]));
   };
 }; // from hand
 
@@ -358,7 +360,7 @@ export const discardPlayedCardsWithLock = (
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch, getState) => {
     dispatch(
-      tryLockCardTable((cb: Function) => discardPlayedCards(cards, locs, cb))
+      tryLockCardTable(() => discardPlayedCards(cards, locs))
     );
   };
 };
@@ -366,7 +368,6 @@ export const discardPlayedCardsWithLock = (
 export const discardPlayedCards = (
   cards: Card[],
   locs: Point[],
-  unlockCallback: Function,
   duration = 750,
   delay = 0
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
@@ -381,14 +382,10 @@ export const discardPlayedCards = (
         delay,
       },
     };
-    dispatch(PlayAnimation(flyOutAnim));
-    dispatch(deleteCardsFromHand(cardKeys));
-
-    await sleep(delay + duration);
-
+    await dispatch(deleteCardsFromHand(cardKeys));
+    await dispatch(PlayAnimation(flyOutAnim, delay + duration));
     cards.forEach((card) => dispatch(removeFlyOutAnimation(card.key)));
-    dispatch(addCardsToDiscardPile(cards));
-    unlockCallback();
+    await dispatch(addCardsToDiscardPile(cards));
   };
 };
 
@@ -398,7 +395,7 @@ export const shredPlayedCardsWithLock = (
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch, getState) => {
     dispatch(
-      tryLockCardTable((cb: Function) => shredPlayedCards(cards, locs, cb))
+      tryLockCardTable(() => shredPlayedCards(cards, locs))
     );
   };
 };
@@ -406,7 +403,6 @@ export const shredPlayedCardsWithLock = (
 export const shredPlayedCards = (
   cards: Card[],
   locs: Point[],
-  unlockCallback: Function,
   duration = 750,
   delay = 0
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
@@ -421,14 +417,11 @@ export const shredPlayedCards = (
         delay,
       },
     };
-    dispatch(PlayAnimation(shredAnim));
-    dispatch(deleteCardsFromHand(cardKeys));
 
-    await sleep(delay + duration);
-
+    await dispatch(deleteCardsFromHand(cardKeys));
+    await dispatch(PlayAnimation(shredAnim, delay + duration));
     cards.forEach((card) => dispatch(removeShredAnimation(card.key)));
-    // TO-DO: dispatch(addCardsToShredPile(cards));
-    unlockCallback();
+    // TO-DO: await dispatch(addCardsToShredPile(cards));
   };
 };
 
@@ -450,8 +443,8 @@ export const addNewCardsOutsideDeck = (
 ): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
   return (dispatch, getState) => {
     dispatch(
-      tryLockCardTable((cb: Function) =>
-        addCardsToDrawPileAnimated(cards, locs, cb)
+      tryLockCardTable(() =>
+        addCardsToDrawPileAnimated(cards, locs)
       )
     );
   };
@@ -460,7 +453,6 @@ export const addNewCardsOutsideDeck = (
 export const addCardsToDrawPileAnimated = (
   cards: Card[],
   locs: Point[],
-  unlockCallback: Function,
   isFromHand = false,
   duration = 750,
   delay = 0
@@ -476,15 +468,12 @@ export const addCardsToDrawPileAnimated = (
         delay,
       },
     };
-    dispatch(PlayAnimation(flyOutAnim));
+    if (isFromHand) await dispatch(deleteCardsFromHand(cards.map((c) => c.key)));
 
-    if (isFromHand) dispatch(deleteCardsFromHand(cards.map((c) => c.key)));
-
-    await sleep(delay + duration);
+    await dispatch(PlayAnimation(flyOutAnim, delay + duration));
 
     cards.forEach((card) => dispatch(removeFlyOutAnimation(card.key)));
-    dispatch(addCardsToDrawPile(cards));
-    unlockCallback();
+    await dispatch(addCardsToDrawPile(cards));
   };
 };
 
@@ -570,7 +559,7 @@ export const dequeueActionQueue = () => {
 };
 
 export const unlockCardTableAndNext = (): ThunkAction<
-  void,
+  Promise<any>,
   RootStateOrAny,
   unknown,
   AnyAction
@@ -580,8 +569,9 @@ export const unlockCardTableAndNext = (): ThunkAction<
     if (actionQueue.length > 0) {
       const action = actionQueue[0];
       dispatch(dequeueActionQueue());
-      await sleep(250);
-      action();
+      await sleep(150);
+      await dispatch(action());
+      await dispatch(unlockCardTableAndNext());
     } else {
       dispatch(unlockCardTable());
     }
@@ -590,17 +580,14 @@ export const unlockCardTableAndNext = (): ThunkAction<
 
 export const tryLockCardTable = (
   action: Function
-): ThunkAction<void, RootStateOrAny, unknown, AnyAction> => {
-  return (dispatch, getState) => {
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return async (dispatch, getState) => {
     if (getState().battle.card.cardTableLock) {
-      dispatch(
-        enqueueActionQueue(() =>
-          dispatch(action(() => dispatch(unlockCardTableAndNext())))
-        )
-      );
+      dispatch(enqueueActionQueue(action));
     } else {
       dispatch(lockCardTable());
-      dispatch(action(() => dispatch(unlockCardTableAndNext())));
+      await dispatch(action());
+      await dispatch(unlockCardTableAndNext());
     }
   };
 };

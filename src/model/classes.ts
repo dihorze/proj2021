@@ -1,4 +1,4 @@
-import { deckMaster } from "../data/deck";
+import { CardTypes, deckMaster } from "../data/deck";
 
 export class Card {
   constructor(
@@ -54,7 +54,12 @@ export class Card {
     return deckMaster[this.id].isShred;
   }
 
+  getIsAiming() {
+    return deckMaster[this.id].isAiming;
+  }
+
   static getCardFromKey = (key: string) => {
+    if (key === CardTypes.NONE) return null;
     const id = key.split('-')[0];
     return Card.init(id, key);
   }

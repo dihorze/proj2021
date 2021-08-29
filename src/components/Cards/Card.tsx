@@ -135,7 +135,7 @@ const useStyles = makeStyles({
     padding: 7,
     fontSize: 24,
     fontWeight: "bold",
-    backgroundImage: "url('./assets/card1.png')",
+    backgroundImage: "url('./assets/card2.png')",
     backgroundSize: "cover",
     transition: "transform 0.1s",
     "&:hover": {
@@ -149,7 +149,7 @@ const useStyles = makeStyles({
     padding: 7,
     fontSize: 24,
     fontWeight: "bold",
-    backgroundImage: "url('./assets/card1.png')",
+    backgroundImage: "url('./assets/card2.png')",
     backgroundSize: "cover",
   },
 } as StyleRules);
@@ -330,10 +330,20 @@ interface CardContentProps {
   width: number;
 }
 
+const getCostFontSize = (props) => {
+  const { width } = props;
+  return `${(15 * width) / cWidth}pt`;
+};
+
 const getTitleFontSize = (props) => {
   const { title, width } = props;
   const n = title.length;
-  return `${Math.min((width / n) * 0.9, (9 * width) / cWidth)}pt`;
+  return `${Math.min((width / n) * 0.85, (9 * width) / cWidth)}pt`;
+};
+
+const getTypeFontSize = (props) => {
+  const { width } = props;
+  return `${(5 * width) / cWidth}pt`;
 };
 
 const getTextFontSize = (props) => {
@@ -352,31 +362,58 @@ const useStylesCardContent = makeStyles({
     alignItems: "center",
     justifyContent: "flex-start",
   },
+  firstRow: {
+    width: "100%",
+    height: "13%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "flex-start"
+  },
+  cost: {
+    fontSize: getCostFontSize,
+    marginLeft: "0%",
+    width: "20%",
+    textAlign: "center",
+    fontWeight: "bolder",
+    color: "darkgreen"
+  },
   title: {
     fontSize: getTitleFontSize,
-    width: "80%",
-    height: "11.5%",
+    textAlign: "center",
+    height: "100%",
+    width: "74%",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
+  },
+  type: {
+    fontSize: getTypeFontSize,
+    width: "40%",
+    margin: "2% 25% 1% 0",
+    fontWeight: "bolder",
+    textAlign: "center",
   },
   img: {
     width: "85%",
-    margin: "12% 0 9% 0",
+    margin: "0 0 9% 0",
     borderRadius: "1px",
-    border: "1px solid #333",
+    border: "1px solid #6e5d3c",
   },
   text: {
     fontSize: getTextFontSize,
     padding: "5px",
     width: "91%",
     margin: "0 5%",
+    textAlign: "justify",
   },
 });
 
 const CardContent: React.FC<CardContentProps> = ({ card, width }) => {
   const title = card.getTitle(),
-    description = card.getDiscription();
+    description = card.getDiscription(),
+    type = card.getType(),
+    cost = card.getCost();
 
   const classes = useStylesCardContent({
     title,
@@ -386,8 +423,13 @@ const CardContent: React.FC<CardContentProps> = ({ card, width }) => {
 
   return (
     <div className={classes.ctn}>
-      <div className={classes.title}>{title}</div>
+      <div className={classes.firstRow}>
+        {" "}
+        <div className={classes.cost}>{cost < 0 ? "X" : cost}</div>
+        <div className={classes.title}>{title}</div>
+      </div>
 
+      <div className={classes.type}>{type}</div>
       <img
         src={card.getUri()}
         alt={title}
