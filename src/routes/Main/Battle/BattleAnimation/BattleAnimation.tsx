@@ -31,15 +31,6 @@ class BattleAnimation extends React.Component<BattleAnimationProps> {
     const { classes, shuffle } = this.props;
     return (
       <>
-        {/* {this.props.slideInProps.map((props) => (
-          <SlideIn {...props} key={props.handIdx}/>
-        ))} */}
-        {/* {this.props.slideOutProps.map((props) => (
-          <Slideout
-            {...props}
-            key={"slideout-" + props.card.key + "-" + shuffle}
-          />
-        ))} */}
         {this.props.flyOutProps.map((props) => (
           <FlyOut {...props} key={"flyout-" + props.card.key + "-" + shuffle} />
         ))}

@@ -11,6 +11,7 @@ import AimingArrow from "./AimingArrow";
 import BattleUI from "./BattleUI/BattleUI";
 import BattleAnimation from "./BattleAnimation/BattleAnimation";
 import { deckMaster } from "../../../data/deck";
+import StatusBar from "./StatusBar/StatusBar";
 
 interface BattlefieldProps {
   classes: Record<string, string>;
@@ -46,6 +47,7 @@ class Battlefield extends React.Component<BattlefieldProps> {
           className={classes.canvasContainer}
           onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
         >
+          <StatusBar />
           <CardTable />
           <AimingArrow />
           <BattleUI />

@@ -22,3 +22,12 @@ export const sinkCoefficient = 1.5;
 
 export const getCardPos = (mousePos: Point) =>
   mousePos.subtract(Point.at(cWidth / 2, cHeight / 2)).add(Point.at(10, 0));
+
+
+// status bar
+export const sWidth = 72;
+export const sHeight = 72;
+export const getSTop = (innerHeight: number) => innerHeight - cHeight - 1.5 * sHeight;
+export const sOrigin = Point.at(0, 2000);
+export const sDegInterval = 8;
+
