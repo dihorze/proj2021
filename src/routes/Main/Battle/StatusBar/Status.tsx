@@ -39,9 +39,10 @@ const useStyles = makeStyles({
   txt: {
     fontSize: 28,
     color: "white",
-    textShadow: "-1px 0 #333, 0 1px #333, 1px 0 #333, 0 -1px #333",
-    // WebkitTextStroke: "2px black",
+    // textShadow: "-2px 0 #333, 0 2px #333, 2px 0 #333, 0 -2px #333",
+    WebkitTextStroke: "2px #333",
     margin: "auto",
+    fontFamily: "Friz"
   },
 });
 

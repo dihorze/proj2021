@@ -1,6 +1,6 @@
 import { shuffle } from "../../components/util/functions";
 import { CardTypes } from "../../data/deck";
-import { Card } from "../../model/classes";
+import { Card, Enemy } from "../../model/classes";
 
 interface CardTableState {
   cardTableLock?: boolean;
@@ -9,6 +9,8 @@ interface CardTableState {
   drawPileCards?: Array<Card>;
   discardPileCards?: Array<Card>;
   cards?: Array<Card>;
+  shredPileCards?: Array<Card>;
+
   selectedCard?: string; // string
   aimingCard?: string; // string
   hoveredCard?: number; // index
@@ -23,6 +25,8 @@ export class CardTableStateBuilder {
       drawPileCards: [],
       discardPileCards: [],
       cards: [],
+      shredPileCards: [],
+
       aimingCard: CardTypes.NONE,
       selectedCard: CardTypes.NONE,
       hoveredCard: -1,
@@ -38,6 +42,8 @@ export class CardTableStateBuilder {
       drawPileCards: state.drawPileCards,
       discardPileCards: state.discardPileCards,
       cards: state.cards,
+      shredPileCards: state.shredPileCards,
+
       aimingCard: state.aimingCard,
       selectedCard: state.selectedCard,
       hoveredCard: state.hoveredCard,
@@ -52,6 +58,8 @@ export class CardTableStateBuilder {
     newState.drawPileCards = newArrays.drawPileCards || newState.drawPileCards;
     newState.discardPileCards =
       newArrays.discardPileCards || newState.discardPileCards;
+    newState.shredPileCards =
+      newArrays.shredPileCards || newState.shredPileCards;
     return newState;
   }
 
@@ -203,6 +211,28 @@ export class CardTableStateBuilder {
     return newState;
   }
 
+  static addCardsToShredPile(
+    state: CardTableState,
+    cards: Card[]
+  ): CardTableState {
+    const newCards = state.shredPileCards.concat(cards.map((c) => c.copy()));
+    return CardTableStateBuilder.withNewArray(state, {
+      shredPileCards: newCards,
+    });
+  }
+
+  static deleteCardsFromShredPile(
+    state: CardTableState,
+    keys: string[]
+  ): CardTableState {
+    const newState = CardTableStateBuilder.withNewArray(state, {
+      shredPileCards: state.shredPileCards.filter(
+        (c) => !keys.includes(c.key)
+      ),
+    });
+    return newState;
+  }
+
   static lockCardTable(state: CardTableState): CardTableState {
     const newState = CardTableStateBuilder.copy(state);
     console.log("lock");
@@ -238,6 +268,7 @@ interface BattleState {
   noShuffles: number;
   showDrawPile: boolean;
   showDiscardPile: boolean;
+  showShredPile: boolean;
 }
 
 export class BattleStateBuilder {
@@ -247,6 +278,7 @@ export class BattleStateBuilder {
       noShuffles: 0,
       showDrawPile: false,
       showDiscardPile: false,
+      showShredPile: false,
     };
   }
 
@@ -257,6 +289,7 @@ export class BattleStateBuilder {
       noShuffles: state.noShuffles,
       showDrawPile: state.showDrawPile,
       showDiscardPile: state.showDiscardPile,
+      showShredPile: state.showShredPile,
     };
   }
 
@@ -283,4 +316,15 @@ export class BattleStateBuilder {
     newState.showDiscardPile = !newState.showDiscardPile;
     return newState;
   }
+
+  static toggleShredPile(state: BattleState): BattleState {
+    const newState = BattleStateBuilder.copy(state);
+    newState.showShredPile = !newState.showShredPile;
+    return newState;
+  }
+}
+
+interface EnemyState {
+  enemies: Array<Enemy>;
+
 }

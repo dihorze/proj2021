@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Point } from "../../model/positioning";
 import { Card } from "../../model/classes";
-import { SlideInProps } from "./SlideIn";
+import { SlideInProps } from "./Slidein";
 import { cHeight, cWidth, getCTop } from "../../data/Battlefield";
 import { useScreenSize } from "../util/useScreenSize";
 import { SlideOutProps } from "./Slideout";

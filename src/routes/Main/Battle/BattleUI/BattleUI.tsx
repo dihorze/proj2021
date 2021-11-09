@@ -10,6 +10,7 @@ import { connect } from "react-redux";
 import {
   toggleDrawPile,
   toggleDiscardPile,
+  toggleShredPile,
   endTurn,
 } from "../../../../store/actions/battle";
 import { Card } from "../../../../model/classes";
@@ -22,6 +23,9 @@ interface BattleUIProps {
   discardPileCards: Array<Card>;
   showDiscardPile: boolean;
   toggleDiscardPile: () => void;
+  shredPileCards: Array<Card>;
+  showShredPile: boolean;
+  toggleShredPile: () => void;
   endTurn: () => void;
 }
 
@@ -34,7 +38,12 @@ class BattleUI extends React.Component<BattleUIProps> {
     return (
       <>
         <Scene />
-        <Trashbin onClick={this.props.endTurn}/>
+        <Trashbin
+          showShredDeck={this.props.showShredPile}
+          cards={this.props.shredPileCards}
+          onClick={this.props.toggleShredPile}
+          onContextMenu={this.props.toggleShredPile}
+        />
         <DiscardStack
           showDiscardDeck={this.props.showDiscardPile}
           cards={this.props.discardPileCards}
@@ -60,11 +69,14 @@ const mapStateToProps = ({ battle }) => {
     showDrawPile: battle.battle.showDrawPile,
     discardPileCards: battle.card.discardPileCards,
     showDiscardPile: battle.battle.showDiscardPile,
+    shredPileCards: battle.card.shredPileCards,
+    showShredPile: battle.battle.showShredPile,
   };
 };
 
 export default connect(mapStateToProps, {
   toggleDrawPile,
   toggleDiscardPile,
+  toggleShredPile,
   endTurn,
 })(StyledBattleUI);

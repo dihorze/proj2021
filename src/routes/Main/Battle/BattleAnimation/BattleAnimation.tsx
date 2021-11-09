@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/styles";
 import { StyleRules } from "@material-ui/core";
 import { connect } from "react-redux";
 import {} from "../../../../store/actions/battle";
-import SlideIn, { SlideInProps } from "../../../../components/Cards/SlideIn";
+import SlideIn, { SlideInProps } from "../../../../components/Cards/Slidein";
 import Slideout, { SlideOutProps } from "../../../../components/Cards/Slideout";
 import FlyOut, { FlyOutProps } from "../../../../components/Cards/FlyOut";
 import ShuffleDiscardToDraw, {

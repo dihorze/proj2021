@@ -12,6 +12,7 @@ import BattleUI from "./BattleUI/BattleUI";
 import BattleAnimation from "./BattleAnimation/BattleAnimation";
 import { deckMaster } from "../../../data/deck";
 import StatusBar from "./StatusBar/StatusBar";
+import { preloadAllAssets } from "../../../scripts/preload";
 
 interface BattlefieldProps {
   classes: Record<string, string>;
@@ -30,10 +31,7 @@ const styles: StyleRules = {
 class Battlefield extends React.Component<BattlefieldProps> {
   componentDidMount() {
     // preload card images
-    for (const cardKey in deckMaster) {
-      const img = new Image();
-      img.src = deckMaster[cardKey].uri;
-    }
+    preloadAllAssets();
   }
 
   render() {

@@ -46,6 +46,10 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
     return true;
   }
 
+  componentDidMount() {
+    this.props.startBattle();
+  }
+
   cardEnter = (idx: number) => () => {
     if (
       idx !== this.props.hoveredCard &&
@@ -108,22 +112,22 @@ export class CardTable extends Component<CardTableProps, CardTableStates> {
     return (
       <>
         <Button1
-          btnStyle={{ position: "fixed", top: 300, left: 300, width: 150 }}
+          btnStyle={{ position: "fixed", top: 150, right: 100, width: 150 }}
           onClick={this.props.toggleCardSelectionPage}
         >
           Choose A Card
         </Button1>
         <Button1
-          btnStyle={{ position: "fixed", top: 300, left: 700, width: 150 }}
-          onClick={this.props.startBattle}
-        >
-          Discussion Start
-        </Button1>
-        <Button1
-          btnStyle={{ position: "fixed", top: 300, left: 900, width: 150 }}
+          btnStyle={{ position: "fixed", top: 200, right: 100, width: 150 }}
           onClick={this.props.startTurn}
         >
           Start Turn
+        </Button1>
+        <Button1
+          btnStyle={{ position: "fixed", top: 250, right: 100, width: 150 }}
+          onClick={this.props.endTurn}
+        >
+          End Turn
         </Button1>
         {cards.map(({ loc, o, deg, key, card, hoverOffsets, offsets }, idx) => (
           <CardComponent

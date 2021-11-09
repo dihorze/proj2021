@@ -24,6 +24,7 @@ import {
   ADD_CARDS_TO_DISCARD_PILE,
   ADD_CARDS_TO_DRAW_PILE,
   ADD_CARDS_TO_HAND,
+  ADD_CARDS_TO_SHRED_PILE,
   ADD_MANY_CARDS,
   ADD_ONE_CARD,
   CLEAR_HOVERED_CARD,
@@ -31,6 +32,7 @@ import {
   DELETE_CARDS_FROM_DISCARD_PILE,
   DELETE_CARDS_FROM_DRAW_PILE,
   DELETE_CARDS_FROM_HAND,
+  DELETE_CARDS_FROM_SHRED_PILE,
   DELETE_ONE_CARDS,
   DEQUEUE_ACTION_QUEUE,
   ENQUEUE_ACTION_QUEUE,
@@ -42,6 +44,7 @@ import {
   SET_HOVERED_CARD,
   TOGGLE_DISCARD_PILE,
   TOGGLE_DRAW_PILE,
+  TOGGLE_SHRED_PILE,
   UNLOCK_CARD_TABLE,
   UNSELECT_CARD,
 } from "./types";
@@ -182,6 +185,30 @@ export const deleteCardsFromDiscardPile = (
     Promise.resolve().then(() => {
       dispatch({
         type: DELETE_CARDS_FROM_DISCARD_PILE,
+        keys,
+      });
+    });
+};
+
+export const addCardsToShredPile = (
+  cards: Array<Card>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: ADD_CARDS_TO_SHRED_PILE,
+        cards,
+      });
+    });
+};
+
+export const deleteCardsFromShredPile = (
+  keys: Array<string>
+): ThunkAction<Promise<any>, RootStateOrAny, unknown, AnyAction> => {
+  return (dispatch, getState) =>
+    Promise.resolve().then(() => {
+      dispatch({
+        type: DELETE_CARDS_FROM_SHRED_PILE,
         keys,
       });
     });
@@ -421,7 +448,7 @@ export const shredPlayedCards = (
     await dispatch(deleteCardsFromHand(cardKeys));
     await dispatch(PlayAnimation(shredAnim, delay + duration));
     cards.forEach((card) => dispatch(removeShredAnimation(card.key)));
-    // TO-DO: await dispatch(addCardsToShredPile(cards));
+    dispatch(addCardsToShredPile(cards));
   };
 };
 
@@ -528,6 +555,12 @@ export const toggleDrawPile = () => {
 export const toggleDiscardPile = () => {
   return {
     type: TOGGLE_DISCARD_PILE,
+  };
+};
+
+export const toggleShredPile = () => {
+  return {
+    type: TOGGLE_SHRED_PILE,
   };
 };
 

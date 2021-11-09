@@ -3,7 +3,7 @@ import { CardTypes, deckMaster } from "../data/deck";
 export class Card {
   constructor(
     public key = Math.floor(Math.random() * 10000) + "",
-    public id = "test",
+    public id = "test"
   ) {}
 
   static fake() {
@@ -33,7 +33,7 @@ export class Card {
   getType() {
     return deckMaster[this.id].type;
   }
-  
+
   getUri() {
     return deckMaster[this.id].uri;
   }
@@ -60,9 +60,9 @@ export class Card {
 
   static getCardFromKey = (key: string) => {
     if (key === CardTypes.NONE) return null;
-    const id = key.split('-')[0];
+    const id = key.split("-")[0];
     return Card.init(id, key);
-  }
+  };
 }
 
 export interface Anim {
@@ -74,4 +74,29 @@ interface Payload {
   callfronts?: Function[];
   callbacks?: Function[];
   [key: string]: any;
+}
+
+interface EnemyMove {
+  isAttacking: boolean;
+  attackVal: number;
+  attackTimes: number;
+}
+
+interface EnemyIntent {
+
+}
+
+export abstract class Enemy {
+  constructor(
+    public key: string,
+    public confusions: number[],
+    public clarity = 0,
+    public impressionable = 0,
+    public dubious = 0,
+  ) {}
+
+  abstract getMoves(turn: number): EnemyMove
+  abstract getIntent(move: EnemyMove): EnemyIntent
+
+
 }

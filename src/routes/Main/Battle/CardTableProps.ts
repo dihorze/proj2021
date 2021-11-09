@@ -1,4 +1,4 @@
-import { SlideInProps } from "../../../components/Cards/SlideIn";
+import { SlideInProps } from "../../../components/Cards/Slidein";
 import { SlideOutProps } from "../../../components/Cards/Slideout";
 import { Card } from "../../../model/classes";
 import { Point } from "../../../model/positioning";
@@ -12,7 +12,8 @@ import {
   clearHoveredCard,
   startBattle,
   playACard,
-  startTurn
+  startTurn,
+  endTurn
 } from "../../../store/actions/battle";
 import { toggleCardSelectionPage } from "../../../store/actions/game";
 
@@ -33,6 +34,7 @@ export interface CardTableProps {
   startBattle: () => void;
   playACard: (card: Card, loc: Point) => void;
   startTurn: () => void;
+  endTurn: () => void;
   toggleCardSelectionPage: () => void;
 
   slideInAnimation: SlideInProps[];
@@ -67,9 +69,9 @@ export const cardTableActions = {
   startBattle,
   playACard,
   startTurn,
+  endTurn,
   toggleCardSelectionPage
 };
-
 
 
 

@@ -4,6 +4,7 @@ import {
   ADD_CARDS_TO_DISCARD_PILE,
   ADD_CARDS_TO_DRAW_PILE,
   ADD_CARDS_TO_HAND,
+  ADD_CARDS_TO_SHRED_PILE,
   ADD_MANY_CARDS,
   ADD_ONE_CARD,
   CLEAR_HOVERED_CARD,
@@ -11,6 +12,7 @@ import {
   DELETE_CARDS_FROM_DISCARD_PILE,
   DELETE_CARDS_FROM_DRAW_PILE,
   DELETE_CARDS_FROM_HAND,
+  DELETE_CARDS_FROM_SHRED_PILE,
   DELETE_ONE_CARDS,
   DEQUEUE_ACTION_QUEUE,
   ENQUEUE_ACTION_QUEUE,
@@ -22,6 +24,7 @@ import {
   SET_HOVERED_CARD,
   TOGGLE_DISCARD_PILE,
   TOGGLE_DRAW_PILE,
+  TOGGLE_SHRED_PILE,
   UNLOCK_CARD_TABLE,
   UNSELECT_CARD,
 } from "../actions/types";
@@ -69,6 +72,13 @@ const cardReducer = (state = CardTableStateBuilder.init(), action: any) => {
         state,
         action?.keys
       );
+    case ADD_CARDS_TO_SHRED_PILE:
+      return CardTableStateBuilder.addCardsToShredPile(state, action.cards);
+    case DELETE_CARDS_FROM_SHRED_PILE:
+      return CardTableStateBuilder.deleteCardsFromShredPile(
+        state,
+        action?.keys
+      );
 
     case LOCK_CARD_TABLE:
       return CardTableStateBuilder.lockCardTable(state);
@@ -94,6 +104,8 @@ const battleReducer = (state = BattleStateBuilder.init(), action: any) => {
       return BattleStateBuilder.toggleDrawPile(state);
     case TOGGLE_DISCARD_PILE:
       return BattleStateBuilder.toggleDiscardPile(state);
+    case TOGGLE_SHRED_PILE:
+      return BattleStateBuilder.toggleShredPile(state);
     default:
       return state;
   }

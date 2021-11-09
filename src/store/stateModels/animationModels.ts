@@ -1,6 +1,6 @@
 import { FlyOutProps } from "../../components/Cards/FlyOut";
 import { ShredProps } from "../../components/Cards/Shred";
-import { SlideInProps } from "../../components/Cards/SlideIn";
+import { SlideInProps } from "../../components/Cards/Slidein";
 import { SlideOutProps } from "../../components/Cards/Slideout";
 import { Card, Anim } from "../../model/classes";
 import { ShuffleDiscardToDrawProps } from "../../routes/Main/Battle/BattleAnimation/ShuffleDiscardToDraw";
