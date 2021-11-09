@@ -48,8 +48,8 @@ class Battlefield extends React.Component<BattlefieldProps> {
           <StatusBar />
           <CardTable />
           <AimingArrow />
-          <BattleUI />
           <BattleAnimation />
+          <BattleUI />
         </div>
         <Interaction />
       </MultiProvider>
